@@ -1,14 +1,22 @@
 import { useEffect, useRef, useState } from 'react'
+import { pickRandomIndex } from '@/lib/random'
+import { LOADING_MESSAGES, messageAt, UNLOADING_MESSAGES } from '@/lib/messages'
 import { AUDIO_SPACING_MS, CANCEL_COOLDOWN_MS, sleep, synthesisDuration } from '@/lib/pacing'
 import { createCaches, prepareSynthesis, type Voice } from '@/lib/synthesis'
 import { player } from '@/player'
 
 const TICK_MS = 100
 
+function animate(onTick: (elapsedMs: number) => void) {
+  const startedAt = Date.now()
+  onTick(0)
+  return setInterval(() => onTick(Date.now() - startedAt), TICK_MS)
+}
+
 export type SynthesisState =
   | { status: 'idle' }
-  | { status: 'preparing'; progress: number }
-  | { status: 'cancelling' }
+  | { status: 'preparing'; progress: number; message: string }
+  | { status: 'cancelling'; progress: number; message: string }
   | { status: 'error' }
   | { status: 'impossible'; missing: string[] }
   | { status: 'ready'; voices: Voice<AudioBuffer>[]; playing: number | null }
@@ -60,11 +68,13 @@ export function useSynthesis() {
     const current = new AbortController()
     controller.current = current
     const duration = synthesisDuration()
-    const startedAt = Date.now()
-    setState({ status: 'preparing', progress: 0 })
-    const ticker = setInterval(
-      () => setState({ status: 'preparing', progress: (Date.now() - startedAt) / duration }),
-      TICK_MS,
+    const first = pickRandomIndex(LOADING_MESSAGES)
+    const ticker = animate((elapsed) =>
+      setState({
+        status: 'preparing',
+        progress: elapsed / duration,
+        message: messageAt(LOADING_MESSAGES, first, elapsed),
+      }),
     )
 
     try {
@@ -91,8 +101,17 @@ export function useSynthesis() {
 
   const cancel = async () => {
     controller.current?.abort()
-    setState({ status: 'cancelling' })
+    const from = state.status === 'preparing' ? Math.min(1, state.progress) : 0
+    const first = pickRandomIndex(UNLOADING_MESSAGES)
+    const ticker = animate((elapsed) =>
+      setState({
+        status: 'cancelling',
+        progress: from * Math.max(0, 1 - elapsed / CANCEL_COOLDOWN_MS),
+        message: messageAt(UNLOADING_MESSAGES, first, elapsed),
+      }),
+    )
     await sleep(CANCEL_COOLDOWN_MS)
+    clearInterval(ticker)
     setState({ status: 'idle' })
   }
 

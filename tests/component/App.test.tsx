@@ -1,6 +1,8 @@
 import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from '@/App'
+import { EXAMPLES } from '@/lib/examples'
+import { LOADING_MESSAGES, MESSAGE_PERIOD_MS, UNLOADING_MESSAGES } from '@/lib/messages'
 import { decodeText, fakeWikimedia, listen } from '../fakeWikimedia'
 
 type PlaybackEvents = { onWord: (index: number) => void; onEnd: () => void }
@@ -57,6 +59,11 @@ describe('App', () => {
     vi.unstubAllGlobals()
   })
 
+  it('welcomes the visitor with an example sentence', () => {
+    setup('')
+    expect(screen.getByLabelText('Votre texte')).toHaveValue(EXAMPLES[0])
+  })
+
   it('counts the words of the typed text', async () => {
     const { typeText } = setup('Salut la compagnie')
     await typeText()
@@ -77,12 +84,15 @@ describe('App', () => {
     await read()
 
     expect(screen.getByRole('progressbar', { name: 'Préparation de la voix' })).toBeInTheDocument()
+    expect(screen.getByText(LOADING_MESSAGES[0]!)).toBeInTheDocument()
+    await wait(MESSAGE_PERIOD_MS)
+    expect(screen.getByText(LOADING_MESSAGES[1]!)).toBeInTheDocument()
     expect(screen.queryByLabelText('Votre texte')).not.toBeInTheDocument()
     expect(itemsOf('Mots en préparation')).toEqual(['Salut\u00a0', 'la\u00a0'])
     expect(
       within(screen.getByRole('list', { name: 'Mots en préparation' })).queryByRole('link'),
     ).not.toBeInTheDocument()
-    await wait(4800)
+    await wait(4800 - MESSAGE_PERIOD_MS)
     expect(screen.queryByRole('list', { name: 'Voix trouvées' })).not.toBeInTheDocument()
 
     await wait(300)
@@ -143,7 +153,9 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: 'Annuler' }))
 
     expect(screen.getByRole('button', { name: 'Annulation en cours…' })).toBeDisabled()
-    expect(screen.getByLabelText('Votre texte')).toBeDisabled()
+    expect(screen.getByText(UNLOADING_MESSAGES[0]!)).toBeInTheDocument()
+    expect(screen.getByRole('progressbar', { name: 'Annulation' })).toBeInTheDocument()
+    expect(screen.queryByLabelText('Votre texte')).not.toBeInTheDocument()
     expect(fetchFn.mock.calls[0]![1]?.signal?.aborted).toBe(true)
     await wait(2900)
     expect(screen.getByRole('button', { name: 'Annulation en cours…' })).toBeDisabled()

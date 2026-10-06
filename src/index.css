@@ -5,6 +5,10 @@
 }
 
 @layer base {
+  :root {
+    color-scheme: light dark;
+  }
+
   button:not(:disabled),
   [role='button']:not(:disabled),
   a[href] {

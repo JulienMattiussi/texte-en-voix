@@ -4,7 +4,10 @@ const LINGUA_LIBRE_URL = 'https://lingualibre.org/app/'
 
 export function MissingWords({ words }: { words: string[] }) {
   return (
-    <div role="alert" className="rounded-3xl bg-red-50 p-6 text-center text-red-900">
+    <div
+      role="alert"
+      className="rounded-3xl bg-red-50 dark:bg-red-950/60 p-6 text-center text-red-900 dark:text-red-200"
+    >
       <p className="text-lg font-bold">La synthèse vocale n’est pas possible.</p>
       <p className="mt-1">Personne n’a encore enregistré ces mots :</p>
       <ul aria-label="Mots introuvables" className="mt-3 flex flex-wrap justify-center gap-2">
@@ -15,7 +18,7 @@ export function MissingWords({ words }: { words: string[] }) {
               target={WIKTIONARY_TARGET}
               rel="noopener"
               title={`« ${word} » sur le Wiktionnaire`}
-              className="inline-block rounded-2xl border-2 border-red-300 bg-white px-3 py-1 font-semibold text-red-900 transition outline-none hover:bg-red-100 focus-visible:ring-4 focus-visible:ring-red-300"
+              className="inline-block rounded-2xl border-2 border-red-300 dark:border-red-800 bg-white dark:bg-stone-950 px-3 py-1 font-semibold text-red-900 dark:text-red-200 transition outline-none hover:bg-red-100 dark:hover:bg-red-900/60 focus-visible:ring-4 focus-visible:ring-red-300"
             >
               {word}
             </a>
@@ -29,7 +32,7 @@ export function MissingWords({ words }: { words: string[] }) {
           href={LINGUA_LIBRE_URL}
           target="lingualibre"
           rel="noopener"
-          className="font-semibold underline underline-offset-2 outline-none hover:text-red-700 focus-visible:ring-4 focus-visible:ring-red-300"
+          className="font-semibold underline underline-offset-2 outline-none hover:text-red-700 dark:hover:text-red-400 focus-visible:ring-4 focus-visible:ring-red-300"
         >
           Lingua Libre
         </a>{' '}

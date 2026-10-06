@@ -9,16 +9,20 @@ export function WordList({ label, items, minHeight }: WordListProps) {
     <ul
       aria-label={label}
       style={{ minHeight }}
-      className="flex min-h-36 flex-wrap content-start gap-2 rounded-2xl border border-stone-200 bg-white p-4"
+      className="flex min-h-36 flex-wrap content-start gap-2 rounded-2xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-950 p-4"
     >
       {items.map(({ word, detail, href, active }, index) => {
         const chip = `flex flex-col items-center rounded-2xl px-3 py-1 transition-colors duration-300 ${
-          active ? 'bg-orange-600 text-white' : 'bg-orange-50 text-stone-800'
+          active
+            ? 'bg-orange-600 text-white'
+            : 'bg-orange-50 dark:bg-stone-800 text-stone-800 dark:text-stone-100'
         }`
         const content = (
           <>
             <span className="text-lg">{word}</span>
-            <span className={`text-xs ${active ? 'text-orange-100' : 'text-stone-500'}`}>
+            <span
+              className={`text-xs ${active ? 'text-orange-100' : 'text-stone-500 dark:text-stone-400'}`}
+            >
               {detail ?? ' '}
             </span>
           </>
@@ -32,7 +36,7 @@ export function WordList({ label, items, minHeight }: WordListProps) {
                 rel="noopener"
                 title={`« ${word} » sur le Wiktionnaire`}
                 className={`${chip} outline-none focus-visible:ring-4 focus-visible:ring-orange-300 ${
-                  active ? '' : 'hover:bg-orange-100'
+                  active ? '' : 'hover:bg-orange-100 dark:hover:bg-stone-700'
                 }`}
               >
                 {content}

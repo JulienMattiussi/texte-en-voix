@@ -34,7 +34,7 @@ function PencilToSound({ className }: { className?: string }) {
       <path
         d="M4 22c18-9 34 7 54-1s32-8 50-1 34 5 52-2 26-3 40 2"
         fill="none"
-        stroke="#57534e"
+        stroke="currentColor"
         strokeWidth="3"
         strokeLinecap="round"
       />
@@ -51,15 +51,19 @@ function PencilToSound({ className }: { className?: string }) {
 export function Title() {
   return (
     <div className="flex flex-col items-center">
-      <h1 className="font-hand flex items-end justify-center gap-2 leading-none text-stone-800 sm:gap-3">
+      <h1 className="font-hand flex items-end justify-center gap-2 leading-none text-stone-800 dark:text-stone-100 sm:gap-3">
         <span className="text-7xl font-bold sm:text-8xl">Texte</span>
-        <span className="mb-1 text-4xl text-stone-500 sm:mb-2 sm:text-5xl">en</span>
-        <span className="text-7xl font-bold text-orange-600 sm:text-8xl">voix</span>
+        <span className="mb-1 text-4xl text-stone-500 dark:text-stone-400 sm:mb-2 sm:text-5xl">
+          en
+        </span>
+        <span className="text-7xl font-bold text-orange-600 dark:text-orange-500 sm:text-8xl">
+          voix
+        </span>
         <VoiceWaves className="mb-2 w-8 sm:mb-4 sm:w-10" />
       </h1>
       <div className="-mt-1 flex items-center">
         <Pencil className="-mr-1 w-14 origin-right rotate-[35deg] sm:w-20" />
-        <PencilToSound className="w-64 sm:w-96" />
+        <PencilToSound className="w-64 text-stone-600 sm:w-96 dark:text-stone-400" />
       </div>
     </div>
   )

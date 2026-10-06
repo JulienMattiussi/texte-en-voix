@@ -42,7 +42,10 @@ src/
 │   ├── lemma.ts              # flexionLemma / frenchIpas / sameIpa : repli par le mot de base
 │   ├── synthesis.ts          # prepareSynthesis : mots -> enregistrements décodés
 │   ├── audio.ts              # voiceBounds / normalizationGain / timeline (calculs audio)
-│   └── pacing.ts             # Verrous : 50 mots max, durée 5-8 s, annulation 3 s
+│   ├── pacing.ts             # Verrous : 50 mots max, durée 5-8 s, annulation 3 s
+│   ├── messages.ts           # Messages bidons de chargement / déchargement, rotation
+│   ├── examples.ts           # Phrases d'exemple (vérifiées en ligne)
+│   └── random.ts             # pickRandom / pickRandomIndex
 ├── player.ts                 # Lecture Web Audio (non testé : jsdom n'a pas d'AudioContext)
 ├── useSynthesis.ts           # Hook : préparation cadencée, annulation, lecture
 ├── Title.tsx                 # Titre dessiné (police Caveat, crayon, ondes de voix)
@@ -125,6 +128,15 @@ tests/
   pointent aussi vers le Wiktionnaire et un encart invite à les enregistrer sur
   Lingua Libre (`https://lingualibre.org/app/`, qui ne permet pas de
   pré-remplir le mot).
+- **Accueil et attente** (`src/lib/examples.ts`, `src/lib/messages.ts`) : une
+  phrase d'exemple est tirée au hasard à l'arrivée. **Chaque nouvelle phrase
+  d'exemple doit être vérifiée en ligne** (tous les mots en un seul lot). Pendant
+  la préparation, des messages bidons défilent toutes les 1,5 s (« On réveille
+  le Vosgien… ») ; pendant l'annulation, d'autres messages (« On rembobine la
+  cassette… ») et la barre se **vide** en 3 s.
+- **Mode sombre** : suit la préférence du système (variantes `dark:` de
+  Tailwind, `color-scheme: light dark`). Toute nouvelle couleur claire doit
+  avoir sa variante `dark:`.
 - **Appels de test** : ne jamais saturer Wikimedia (un blocage tuerait le
   projet). Tous les tests mockent `fetch` ; une vérification réelle se limite à
   une phrase, une fois.
