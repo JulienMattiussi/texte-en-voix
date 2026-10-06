@@ -4,7 +4,8 @@ Application **100% front-end** de synthèse vocale **sans IA et sans
 synthétiseur**. L'utilisateur saisit un texte ; pour chaque mot, l'app interroge
 le **Wiktionnaire francophone**, récupère les enregistrements audio disponibles
 (modèle `{{écouter}}`), choisit de préférence un **accent vosgien,
-québécois, suisse ou du Sud-Ouest**, puis lit la phrase comme une succession de ces enregistrements.
+québécois, suisse ou du Sud-Ouest**, puis lit la phrase comme une succession
+de ces enregistrements.
 Interface en **français**, une seule page simple et accueillante. Partage la
 stack et les conventions de `hide-words`.
 
@@ -18,6 +19,7 @@ stack et les conventions de `hide-words`.
 | Node 22 ou 24 (LTS) | Vitest 5 ne supporte pas les versions impaires (25) |
 | Vite | Build / dev server (port **9999**) |
 | Tailwind CSS v4 | Styles (via `@tailwindcss/vite`, pas de config JS) |
+| Caveat (`@fontsource-variable/caveat`) | Police manuscrite du titre, embarquée (aucun appel Google Fonts) |
 | Vitest + Testing Library | Tests unitaires et composants |
 | Prettier | Formatage |
 | ESLint (typescript-eslint) | Linting |
@@ -42,10 +44,13 @@ src/
 │   ├── audio.ts              # voiceBounds / normalizationGain / timeline (calculs audio)
 │   └── pacing.ts             # Verrous : 50 mots max, durée 5-8 s, annulation 3 s
 ├── player.ts                 # Lecture Web Audio (non testé : jsdom n'a pas d'AudioContext)
-├── useVoiceLookup.ts         # Hook : préparation cadencée, annulation, lecture
+├── useSynthesis.ts           # Hook : préparation cadencée, annulation, lecture
 ├── Title.tsx                 # Titre dessiné (police Caveat, crayon, ondes de voix)
+├── WiktionaryLogo.tsx        # Petite tuile « W » de la ligne « Source : Wiktionnaire »
 ├── WordList.tsx              # Bulles de mots (préparation puis lecture), à la place du textarea
-├── App.tsx                   # UI (saisie, chargement, lecture mot par mot)
+├── ProgressBar.tsx           # Barre de progression de la préparation
+├── MissingWords.tsx          # Encart « synthèse impossible » + invitation Lingua Libre
+├── App.tsx                   # Page : saisie, préparation, lecture
 ├── main.tsx                  # Point d'entrée
 ├── index.css                 # Import Tailwind
 └── vite-env.d.ts             # Types Vite
@@ -53,6 +58,7 @@ public/
 └── favicon.svg               # Favicon
 tests/
 ├── setup.ts                  # Setup Testing Library (jest-dom)
+├── fakeWikimedia.ts          # Faux fetch : Wiktionnaire, Commons et fichiers audio
 ├── unit/                     # Vitest - un fichier de test par module de src/lib/
 └── component/                # Vitest + Testing Library (App)
 ```
@@ -90,9 +96,9 @@ tests/
   (points, accents toniques et liaisons ignorés). « mangeons » n'emprunte donc
   pas « manger ». Une seule requête de plus, et seulement s'il manque des mots.
   La bulle affiche « via mirabelle ».
-- **Verrous** (`src/lib/pacing.ts`, `src/useVoiceLookup.ts`) : pour ménager
+- **Verrous** (`src/lib/pacing.ts`, `src/useSynthesis.ts`) : pour ménager
   Wikimedia et donner une attente réaliste. Texte limité à **50 mots**. Une
-  recherche dure **au moins 5 s** (tirage entre 5 et 8 s, plus si le réseau est
+  préparation dure **au moins 5 s** (tirage entre 5 et 8 s, plus si le réseau est
   lent), avec barre de progression et mots révélés au fil de l'attente ; le
   texte est verrouillé pendant ce temps. On peut **annuler** (les requêtes sont
   interrompues via `AbortSignal`) ; l'annulation dure **au moins 3 s**, après
@@ -111,6 +117,14 @@ tests/
   en avant (`aria-current`). L'`AudioContext` est débloqué dans le clic sur
   « Lire » (politique d'autoplay des navigateurs). « Réécouter » rejoue sans
   attente ni réseau.
+- **Interface** (`src/App.tsx`) : au clic sur « Lire », les bulles de mots
+  prennent la place du textarea (même hauteur, pour que rien ne bouge). Une
+  fois la voix prête, chaque bulle affiche le lieu du locuteur et ouvre la page
+  du mot dans l'onglet nommé `wiktionnaire` ; boutons « Réécouter » /
+  « Arrêter » et « Modifier le texte ». En cas de refus, les mots introuvables
+  pointent aussi vers le Wiktionnaire et un encart invite à les enregistrer sur
+  Lingua Libre (`https://lingualibre.org/app/`, qui ne permet pas de
+  pré-remplir le mot).
 - **Appels de test** : ne jamais saturer Wikimedia (un blocage tuerait le
   projet). Tous les tests mockent `fetch` ; une vérification réelle se limite à
   une phrase, une fois.
@@ -135,7 +149,9 @@ tests/
 
 ### Structure
 - `src/lib/` : logique pure, zéro import React.
-- `src/App.tsx` : le React (état, UI, rendu).
+- `src/useSynthesis.ts` : l'état et l'orchestration (préparation, annulation,
+  lecture) ; `src/player.ts` : la seule couche qui touche à la Web Audio API.
+- `src/*.tsx` : composants d'affichage ; `src/App.tsx` assemble la page.
 - **Taille des fichiers** : viser < ~300 lignes ; au-delà, découper.
 
 ### Qualité du code
@@ -148,7 +164,7 @@ tests/
 ### Tests
 - **Logique pure entièrement testée** (`src/lib/`).
 - **Tests de composants** sur les interactions clés via Testing Library.
-- Les tests ne touchent jamais le réseau : mocker `fetch` (`tests/fakeWiktionary.ts`).
+- Les tests ne touchent jamais le réseau : mocker `fetch` (`tests/fakeWikimedia.ts`).
 - Les délais se testent avec `vi.useFakeTimers({ shouldAdvanceTime: true })`
   (sans `shouldAdvanceTime`, Testing Library attend un `setTimeout` qui ne part
   jamais) et `Math.random` mocké pour une durée fixe de 5 s. `@/player` est

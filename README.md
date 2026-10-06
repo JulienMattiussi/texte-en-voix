@@ -1,7 +1,7 @@
 # texte-en-voix
 
 La synthèse vocale sans IA ni synthétiseur : tapez une phrase, chaque mot est lu
-par un vrai humain grâce aux enregistrements du
+par un véritable être humain grâce aux enregistrements du
 [Wiktionnaire](https://fr.wiktionary.org/), avec de préférence l'accent vosgien,
 québécois, suisse ou du Sud-Ouest.
 

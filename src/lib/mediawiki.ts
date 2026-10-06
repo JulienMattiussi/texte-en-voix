@@ -4,7 +4,6 @@ type TitleMapping = { from: string; to: string }
 
 type MediaWikiPage = {
   title: string
-  missing?: boolean
   revisions?: { slots: { main: { content: string } } }[]
   imageinfo?: { url: string }[]
 }

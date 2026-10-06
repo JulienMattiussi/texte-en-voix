@@ -1,7 +1,7 @@
 import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from '@/App'
-import { decodeText, fakeWiktionary, listen } from '../fakeWiktionary'
+import { decodeText, fakeWikimedia, listen } from '../fakeWikimedia'
 
 type PlaybackEvents = { onWord: (index: number) => void; onEnd: () => void }
 
@@ -71,7 +71,7 @@ describe('App', () => {
   })
 
   it('takes at least 5 seconds, then reads the sentence highlighting each word', async () => {
-    vi.stubGlobal('fetch', fakeWiktionary(WIKITEXTS))
+    vi.stubGlobal('fetch', fakeWikimedia(WIKITEXTS))
     const { typeText, read } = setup('Salut la')
     await typeText()
     await read()
@@ -106,7 +106,7 @@ describe('App', () => {
   })
 
   it('replays instantly and stops on demand', async () => {
-    vi.stubGlobal('fetch', fakeWiktionary(WIKITEXTS))
+    vi.stubGlobal('fetch', fakeWikimedia(WIKITEXTS))
     const { user, typeText, read } = setup('Salut la')
     await typeText()
     await read()
@@ -121,7 +121,7 @@ describe('App', () => {
   })
 
   it('goes back to the text, unchanged, to edit it', async () => {
-    vi.stubGlobal('fetch', fakeWiktionary(WIKITEXTS))
+    vi.stubGlobal('fetch', fakeWikimedia(WIKITEXTS))
     const { user, typeText, read } = setup('Salut la')
     await typeText()
     await read()
@@ -134,7 +134,7 @@ describe('App', () => {
   })
 
   it('cancels in at least 3 seconds, then allows a new search', async () => {
-    const fetchFn = fakeWiktionary(WIKITEXTS)
+    const fetchFn = fakeWikimedia(WIKITEXTS)
     vi.stubGlobal('fetch', fetchFn)
     const { user, typeText, read } = setup('Salut la')
     await typeText()
@@ -153,7 +153,7 @@ describe('App', () => {
   })
 
   it('cancels the synthesis when a word has no recording', async () => {
-    vi.stubGlobal('fetch', fakeWiktionary(WIKITEXTS))
+    vi.stubGlobal('fetch', fakeWikimedia(WIKITEXTS))
     const { typeText, read } = setup('Salut zzzqx')
     await typeText()
     await read()

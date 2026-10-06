@@ -1,6 +1,6 @@
 import { COMMONS_API_URL } from '@/lib/commons'
 import { createCaches, prepareSynthesis } from '@/lib/synthesis'
-import { decodeText, fakeWiktionary, listen } from '../fakeWiktionary'
+import { decodeText, fakeWikimedia, listen } from '../fakeWikimedia'
 
 const WIKITEXTS = {
   salut: listen('France (Vosges)', 'salut.wav'),
@@ -12,7 +12,7 @@ describe('prepareSynthesis', () => {
     const result = await prepareSynthesis(['Salut', 'la', 'salut'], {
       decode: decodeText,
       caches: createCaches(),
-      fetchFn: fakeWiktionary(WIKITEXTS),
+      fetchFn: fakeWikimedia(WIKITEXTS),
     })
     expect(result).toEqual({
       status: 'ready',
@@ -29,15 +29,15 @@ describe('prepareSynthesis', () => {
     await prepareSynthesis(['salut', 'la'], {
       decode: decodeText,
       caches,
-      fetchFn: fakeWiktionary(WIKITEXTS),
+      fetchFn: fakeWikimedia(WIKITEXTS),
     })
-    const fetchFn = fakeWiktionary(WIKITEXTS)
+    const fetchFn = fakeWikimedia(WIKITEXTS)
     await prepareSynthesis(['salut', 'la'], { decode: decodeText, caches, fetchFn })
     expect(fetchFn).not.toHaveBeenCalled()
   })
 
   it('stops before Commons when a word has no recording', async () => {
-    const fetchFn = fakeWiktionary(WIKITEXTS)
+    const fetchFn = fakeWikimedia(WIKITEXTS)
     const result = await prepareSynthesis(['salut', 'zzzqx'], {
       decode: decodeText,
       caches: createCaches(),
@@ -51,7 +51,7 @@ describe('prepareSynthesis', () => {
     const result = await prepareSynthesis(['salut', 'la'], {
       decode: decodeText,
       caches: createCaches(),
-      fetchFn: fakeWiktionary(WIKITEXTS, { missingFiles: ['la.wav'] }),
+      fetchFn: fakeWikimedia(WIKITEXTS, { missingFiles: ['la.wav'] }),
     })
     expect(result).toEqual({ status: 'impossible', missing: ['la'] })
   })

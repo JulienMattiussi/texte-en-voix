@@ -1,6 +1,6 @@
 import { buildQueryUrl } from '@/lib/mediawiki'
 import { fetchWikitexts, WIKTIONARY_API_URL, wiktionaryPageUrl } from '@/lib/wiktionary'
-import { apiResponse, fakeWiktionary, requestedTitles } from '../fakeWiktionary'
+import { apiResponse, fakeWikimedia, requestedTitles } from '../fakeWikimedia'
 
 describe('buildQueryUrl', () => {
   it('asks for all titles with anonymous CORS and redirects', () => {
@@ -33,7 +33,7 @@ describe('wiktionaryPageUrl', () => {
 
 describe('fetchWikitexts', () => {
   it('maps each requested title to its wikitext and omits missing pages', async () => {
-    const fetchFn = fakeWiktionary({ chat: 'miaou' })
+    const fetchFn = fakeWikimedia({ chat: 'miaou' })
     const result = await fetchWikitexts(['chat', 'zzzqx'], { fetchFn })
     expect([...result]).toEqual([['chat', 'miaou']])
   })
@@ -51,7 +51,7 @@ describe('fetchWikitexts', () => {
 
   it('splits more than 50 titles into several queries', async () => {
     const titles = Array.from({ length: 120 }, (_, i) => `mot${i}`)
-    const fetchFn = fakeWiktionary(Object.fromEntries(titles.map((t) => [t, t])))
+    const fetchFn = fakeWikimedia(Object.fromEntries(titles.map((t) => [t, t])))
     const result = await fetchWikitexts(titles, { fetchFn })
     expect(fetchFn.mock.calls.map(([url]) => requestedTitles(String(url)).length)).toEqual([
       50, 50, 20,
@@ -80,9 +80,9 @@ describe('fetchWikitexts', () => {
 
   it('never asks twice for a cached title, found or missing', async () => {
     const cache = new Map<string, string | null>()
-    await fetchWikitexts(['chat', 'zzzqx'], { fetchFn: fakeWiktionary({ chat: 'miaou' }), cache })
+    await fetchWikitexts(['chat', 'zzzqx'], { fetchFn: fakeWikimedia({ chat: 'miaou' }), cache })
 
-    const fetchFn = fakeWiktionary({ chien: 'ouaf' })
+    const fetchFn = fakeWikimedia({ chien: 'ouaf' })
     const result = await fetchWikitexts(['chat', 'zzzqx', 'chien'], { fetchFn, cache })
     expect(fetchFn).toHaveBeenCalledOnce()
     expect(requestedTitles(String(fetchFn.mock.calls[0]![0]))).toEqual(['chien'])
@@ -90,7 +90,7 @@ describe('fetchWikitexts', () => {
   })
 
   it('passes the abort signal to fetch', async () => {
-    const fetchFn = fakeWiktionary({})
+    const fetchFn = fakeWikimedia({})
     const { signal } = new AbortController()
     await fetchWikitexts(['chat'], { fetchFn, signal })
     expect(fetchFn.mock.calls[0]![1]).toEqual({ signal })

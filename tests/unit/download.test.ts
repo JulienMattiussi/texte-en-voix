@@ -1,11 +1,11 @@
 import { downloadAudio } from '@/lib/download'
-import { decodeText, fakeWiktionary, fileUrl } from '../fakeWiktionary'
+import { decodeText, fakeWikimedia, fileUrl } from '../fakeWikimedia'
 
 describe('downloadAudio', () => {
   afterEach(() => vi.useRealTimers())
 
   it('downloads and decodes each file once', async () => {
-    const fetchFn = fakeWiktionary({})
+    const fetchFn = fakeWikimedia({})
     const urls = [fileUrl('a.wav'), fileUrl('b.wav'), fileUrl('a.wav')]
     const result = await downloadAudio(urls, { decode: decodeText, fetchFn })
     expect(fetchFn).toHaveBeenCalledTimes(2)
@@ -14,7 +14,7 @@ describe('downloadAudio', () => {
 
   it('spaces out the downloads, one at a time', async () => {
     vi.useFakeTimers()
-    const fetchFn = fakeWiktionary({})
+    const fetchFn = fakeWikimedia({})
     const done = downloadAudio([fileUrl('a.wav'), fileUrl('b.wav'), fileUrl('c.wav')], {
       decode: decodeText,
       fetchFn,
@@ -33,7 +33,7 @@ describe('downloadAudio', () => {
       [fileUrl('a.wav'), 'cached'],
       [fileUrl('broken.wav'), null],
     ])
-    const fetchFn = fakeWiktionary({})
+    const fetchFn = fakeWikimedia({})
     const result = await downloadAudio([fileUrl('a.wav'), fileUrl('broken.wav')], {
       decode: decodeText,
       fetchFn,
@@ -64,7 +64,7 @@ describe('downloadAudio', () => {
   })
 
   it('passes the abort signal to fetch', async () => {
-    const fetchFn = fakeWiktionary({})
+    const fetchFn = fakeWikimedia({})
     const { signal } = new AbortController()
     await downloadAudio([fileUrl('a.wav')], { decode: decodeText, fetchFn, signal })
     expect(fetchFn.mock.calls[0]![1]).toEqual({ signal })

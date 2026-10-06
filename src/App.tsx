@@ -1,13 +1,13 @@
 import { useRef, useState, type FormEvent } from 'react'
 import { MAX_WORDS, revealedCount } from '@/lib/pacing'
 import { tokenize } from '@/lib/tokenize'
-import { wiktionaryPageUrl } from '@/lib/wiktionary'
-import { useVoiceLookup } from '@/useVoiceLookup'
+import { WIKTIONARY_TARGET, WIKTIONARY_URL, wiktionaryPageUrl } from '@/lib/wiktionary'
+import { useSynthesis } from '@/useSynthesis'
+import { MissingWords } from '@/MissingWords'
+import { ProgressBar } from '@/ProgressBar'
 import { Title } from '@/Title'
 import { WiktionaryLogo } from '@/WiktionaryLogo'
 import { WordList } from '@/WordList'
-
-const LINGUA_LIBRE_URL = 'https://lingualibre.org/app/'
 
 const EXAMPLE = 'Bonjour, aujourd’hui le canard mange une tarte aux brimbelles. C’est un brigand.'
 
@@ -21,10 +21,10 @@ export default function App() {
   const [text, setText] = useState(EXAMPLE)
   const [boxHeight, setBoxHeight] = useState<number>()
   const textarea = useRef<HTMLTextAreaElement>(null)
-  const { state, start, cancel, reset, stop, replay } = useVoiceLookup()
+  const { state, start, cancel, reset, stop, replay } = useSynthesis()
   const words = tokenize(text)
   const tooLong = words.length > MAX_WORDS
-  const editing = state.status !== 'running' && state.status !== 'ready'
+  const editing = state.status !== 'preparing' && state.status !== 'ready'
 
   const changeText = (value: string) => {
     setText(value)
@@ -51,8 +51,8 @@ export default function App() {
             <p className="flex items-center justify-center gap-1.5 text-sm text-stone-500">
               Source :
               <a
-                href="https://fr.wiktionary.org/"
-                target="wiktionnaire"
+                href={WIKTIONARY_URL}
+                target={WIKTIONARY_TARGET}
                 rel="noopener"
                 className="inline-flex items-center gap-1 font-medium text-stone-700 underline-offset-2 outline-none hover:underline focus-visible:ring-4 focus-visible:ring-orange-300"
               >
@@ -102,23 +102,11 @@ export default function App() {
                 {state.status === 'cancelling' ? 'Annulation en cours…' : 'Lire'}
               </button>
             </>
-          ) : state.status === 'running' ? (
+          ) : state.status === 'preparing' ? (
             <>
               <div className="flex items-center gap-4">
                 <p className="font-semibold text-orange-800">Préparation de la voix…</p>
-                <div
-                  role="progressbar"
-                  aria-label="Préparation de la voix"
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-valuenow={Math.round(Math.min(1, state.progress) * 100)}
-                  className="h-2 flex-1 overflow-hidden rounded-full bg-orange-200"
-                >
-                  <div
-                    className="h-full rounded-full bg-orange-600 transition-[width] duration-100 ease-linear"
-                    style={{ width: `${Math.min(1, state.progress) * 100}%` }}
-                  />
-                </div>
+                <ProgressBar label="Préparation de la voix" progress={state.progress} />
               </div>
               <WordList
                 label="Mots en préparation"
@@ -165,40 +153,7 @@ export default function App() {
           )}
         </form>
 
-        {state.status === 'impossible' && (
-          <div role="alert" className="rounded-3xl bg-red-50 p-6 text-center text-red-900">
-            <p className="text-lg font-bold">La synthèse vocale n’est pas possible.</p>
-            <p className="mt-1">Personne n’a encore enregistré ces mots :</p>
-            <ul aria-label="Mots introuvables" className="mt-3 flex flex-wrap justify-center gap-2">
-              {state.missing.map((word) => (
-                <li key={word}>
-                  <a
-                    href={wiktionaryPageUrl(word.toLocaleLowerCase('fr'))}
-                    target="wiktionnaire"
-                    rel="noopener"
-                    title={`« ${word} » sur le Wiktionnaire`}
-                    className="inline-block rounded-2xl border-2 border-red-300 bg-white px-3 py-1 font-semibold text-red-900 transition outline-none hover:bg-red-100 focus-visible:ring-4 focus-visible:ring-red-300"
-                  >
-                    {word}
-                  </a>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-4 text-sm">
-              <span aria-hidden="true">🎙️ </span>
-              Prêtez-leur votre voix sur{' '}
-              <a
-                href={LINGUA_LIBRE_URL}
-                target="lingualibre"
-                rel="noopener"
-                className="font-semibold underline underline-offset-2 outline-none hover:text-red-700 focus-visible:ring-4 focus-visible:ring-red-300"
-              >
-                Lingua Libre
-              </a>{' '}
-              : vos enregistrements rejoindront le Wiktionnaire.
-            </p>
-          </div>
-        )}
+        {state.status === 'impossible' && <MissingWords words={state.missing} />}
 
         {state.status === 'error' && (
           <p role="alert" className="rounded-3xl bg-red-50 p-6 text-center text-red-900">

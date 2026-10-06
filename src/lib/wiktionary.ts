@@ -1,9 +1,11 @@
 import { queryPages, type FetchOptions } from '@/lib/mediawiki'
 
-export const WIKTIONARY_API_URL = 'https://fr.wiktionary.org/w/api.php'
+export const WIKTIONARY_URL = 'https://fr.wiktionary.org/'
+export const WIKTIONARY_TARGET = 'wiktionnaire'
+export const WIKTIONARY_API_URL = `${WIKTIONARY_URL}w/api.php`
 
 export function wiktionaryPageUrl(title: string): string {
-  return `https://fr.wiktionary.org/wiki/${encodeURIComponent(title.replaceAll(' ', '_'))}`
+  return `${WIKTIONARY_URL}wiki/${encodeURIComponent(title.replaceAll(' ', '_'))}`
 }
 
 export function fetchWikitexts(

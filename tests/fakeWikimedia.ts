@@ -27,7 +27,7 @@ export function requestedTitles(url: string): string[] {
   return new URL(url).searchParams.get('titles')!.split('|')
 }
 
-export function fakeWiktionary(
+export function fakeWikimedia(
   wikitexts: Record<string, string>,
   { missingFiles = [] }: { missingFiles?: string[] } = {},
 ) {

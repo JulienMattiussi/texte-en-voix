@@ -1,9 +1,9 @@
 import { fetchFileUrls } from '@/lib/commons'
-import { apiResponse, fakeWiktionary, fileUrl, requestedTitles } from '../fakeWiktionary'
+import { apiResponse, fakeWikimedia, fileUrl, requestedTitles } from '../fakeWikimedia'
 
 describe('fetchFileUrls', () => {
   it('asks Commons for the file pages and returns clean upload URLs', async () => {
-    const fetchFn = fakeWiktionary({}, { missingFiles: ['nope.wav'] })
+    const fetchFn = fakeWikimedia({}, { missingFiles: ['nope.wav'] })
     const result = await fetchFileUrls(['LL-Q150 (fra)-X-chat.wav', 'nope.wav'], { fetchFn })
 
     const url = String(fetchFn.mock.calls[0]![0])

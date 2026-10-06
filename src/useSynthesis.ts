@@ -5,23 +5,27 @@ import { player } from '@/player'
 
 const TICK_MS = 100
 
-export type LookupState =
+export type SynthesisState =
   | { status: 'idle' }
-  | { status: 'running'; progress: number }
+  | { status: 'preparing'; progress: number }
   | { status: 'cancelling' }
   | { status: 'error' }
   | { status: 'impossible'; missing: string[] }
   | { status: 'ready'; voices: Voice<AudioBuffer>[]; playing: number | null }
 
-export function useVoiceLookup() {
-  const [state, setState] = useState<LookupState>({ status: 'idle' })
+export function useSynthesis() {
+  const [state, setState] = useState<SynthesisState>({ status: 'idle' })
   const controller = useRef<AbortController | null>(null)
   const stopPlayback = useRef<(() => void) | null>(null)
   const caches = useRef(createCaches<AudioBuffer>())
 
-  const stop = () => {
+  const haltPlayback = () => {
     stopPlayback.current?.()
     stopPlayback.current = null
+  }
+
+  const stop = () => {
+    haltPlayback()
     setState((previous) =>
       previous.status === 'ready' ? { ...previous, playing: null } : previous,
     )
@@ -36,7 +40,7 @@ export function useVoiceLookup() {
   )
 
   const play = (voices: Voice<AudioBuffer>[]) => {
-    stopPlayback.current?.()
+    haltPlayback()
     setState({ status: 'ready', voices, playing: 0 })
     stopPlayback.current = player.play(
       voices.map((voice) => voice.audio),
@@ -57,9 +61,9 @@ export function useVoiceLookup() {
     controller.current = current
     const duration = synthesisDuration()
     const startedAt = Date.now()
-    setState({ status: 'running', progress: 0 })
+    setState({ status: 'preparing', progress: 0 })
     const ticker = setInterval(
-      () => setState({ status: 'running', progress: (Date.now() - startedAt) / duration }),
+      () => setState({ status: 'preparing', progress: (Date.now() - startedAt) / duration }),
       TICK_MS,
     )
 
@@ -93,10 +97,9 @@ export function useVoiceLookup() {
   }
 
   const reset = () => {
-    stopPlayback.current?.()
-    stopPlayback.current = null
+    haltPlayback()
     setState((previous) =>
-      previous.status === 'running' || previous.status === 'cancelling'
+      previous.status === 'preparing' || previous.status === 'cancelling'
         ? previous
         : { status: 'idle' },
     )

@@ -1,5 +1,5 @@
 import { lookupSentence, titleCandidates } from '@/lib/sentence'
-import { fakeWiktionary, listen } from '../fakeWiktionary'
+import { fakeWikimedia, listen } from '../fakeWikimedia'
 
 describe('titleCandidates', () => {
   it('tries the word as typed, then in lowercase', () => {
@@ -18,7 +18,7 @@ describe('lookupSentence', () => {
 
   it('finds a voice for every word, falling back to lowercase titles', async () => {
     const result = await lookupSentence(['Bonjour', 'Le', 'chat'], {
-      fetchFn: fakeWiktionary(wikitexts),
+      fetchFn: fakeWikimedia(wikitexts),
     })
     expect(result).toEqual({
       status: 'found',
@@ -43,7 +43,7 @@ describe('lookupSentence', () => {
   })
 
   it('queries each title only once', async () => {
-    const fetchFn = fakeWiktionary(wikitexts)
+    const fetchFn = fakeWikimedia(wikitexts)
     await lookupSentence(['chat', 'chat', 'Chat'], { fetchFn })
     expect(new URL(String(fetchFn.mock.calls[0]![0])).searchParams.get('titles')).toBe('chat|Chat')
   })
@@ -55,7 +55,7 @@ describe('lookupSentence', () => {
       `== {{langue|fr}} ==\n'''x''' {{pron|${ipa}|fr}}\n${listen('France (Vosges)', audio)}`
 
     it('borrow the voice of their base word when it sounds the same', async () => {
-      const fetchFn = fakeWiktionary({
+      const fetchFn = fakeWikimedia({
         mirabelles: flexion('mi.ʁa.bɛl', 'mirabelle'),
         mirabelle: lemmaPage('mi.ʁa.bɛl', 'mirabelle.wav'),
       })
@@ -76,7 +76,7 @@ describe('lookupSentence', () => {
 
     it('stay missing when the base word sounds different', async () => {
       const result = await lookupSentence(['mangeons'], {
-        fetchFn: fakeWiktionary({
+        fetchFn: fakeWikimedia({
           mangeons: flexion('mɑ̃.ʒɔ̃', 'manger'),
           manger: lemmaPage('mɑ̃.ʒe', 'manger.wav'),
         }),
@@ -86,14 +86,14 @@ describe('lookupSentence', () => {
   })
 
   it('makes no extra query when every word has a recording', async () => {
-    const fetchFn = fakeWiktionary(wikitexts)
+    const fetchFn = fakeWikimedia(wikitexts)
     await lookupSentence(['chat'], { fetchFn })
     expect(fetchFn).toHaveBeenCalledOnce()
   })
 
   it('gives up when any word has no French recording, listing each missing word once', async () => {
     const result = await lookupSentence(['chat', 'zzzqx', 'Le', 'zzzqx'], {
-      fetchFn: fakeWiktionary({}),
+      fetchFn: fakeWikimedia({}),
     })
     expect(result).toEqual({ status: 'impossible', missing: ['chat', 'zzzqx', 'Le'] })
   })

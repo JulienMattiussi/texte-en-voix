@@ -1,3 +1,5 @@
+import { WIKTIONARY_TARGET } from '@/lib/wiktionary'
+
 type WordItem = { word: string; detail?: string; href?: string; active: boolean }
 
 type WordListProps = { label: string; items: WordItem[]; minHeight?: number }
@@ -26,7 +28,7 @@ export function WordList({ label, items, minHeight }: WordListProps) {
             {href ? (
               <a
                 href={href}
-                target="wiktionnaire"
+                target={WIKTIONARY_TARGET}
                 rel="noopener"
                 title={`« ${word} » sur le Wiktionnaire`}
                 className={`${chip} outline-none focus-visible:ring-4 focus-visible:ring-orange-300 ${
