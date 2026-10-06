@@ -1,5 +1,6 @@
 import { parsePronunciations, pickPronunciation, type Pronunciation } from '@/lib/pronunciations'
-import { fetchWikitexts, type FetchOptions } from '@/lib/wiktionary'
+import type { FetchOptions } from '@/lib/mediawiki'
+import { fetchWikitexts } from '@/lib/wiktionary'
 
 type WordVoice = {
   word: string

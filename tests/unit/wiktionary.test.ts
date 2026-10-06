@@ -1,17 +1,21 @@
-import { buildQueryUrl, fetchWikitexts } from '@/lib/wiktionary'
+import { buildQueryUrl } from '@/lib/mediawiki'
+import { fetchWikitexts, WIKTIONARY_API_URL } from '@/lib/wiktionary'
 import { apiResponse, fakeWiktionary, requestedTitles } from '../fakeWiktionary'
 
 describe('buildQueryUrl', () => {
-  it('asks for the wikitext of all titles with anonymous CORS and redirects', () => {
-    const url = new URL(buildQueryUrl(['chat', 'aujourd’hui']))
+  it('asks for all titles with anonymous CORS and redirects', () => {
+    const url = new URL(
+      buildQueryUrl(WIKTIONARY_API_URL, { prop: 'revisions' }, ['chat', 'aujourd’hui']),
+    )
     expect(url.origin + url.pathname).toBe('https://fr.wiktionary.org/w/api.php')
+    expect(url.searchParams.get('prop')).toBe('revisions')
     expect(url.searchParams.get('titles')).toBe('chat|aujourd’hui')
     expect(url.searchParams.get('origin')).toBe('*')
     expect(url.searchParams.get('redirects')).toBe('1')
   })
 
   it('appends continuation parameters', () => {
-    const url = new URL(buildQueryUrl(['chat'], { rvcontinue: '42' }))
+    const url = new URL(buildQueryUrl(WIKTIONARY_API_URL, {}, ['chat'], { rvcontinue: '42' }))
     expect(url.searchParams.get('rvcontinue')).toBe('42')
   })
 })

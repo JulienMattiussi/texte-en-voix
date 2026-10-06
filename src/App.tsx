@@ -3,17 +3,18 @@ import { MAX_WORDS, revealedCount } from '@/lib/pacing'
 import { tokenize } from '@/lib/tokenize'
 import { useVoiceLookup } from '@/useVoiceLookup'
 
-const EXAMPLE = 'Bonjour, aujourd’hui le chat mange une tarte aux myrtilles.'
+const EXAMPLE = 'Bonjour, aujourd’hui le canard mange une tarte aux myrtilles.'
 
 const PRIMARY_BUTTON =
   'self-center rounded-full px-8 py-3 text-lg font-bold shadow-lg transition focus-visible:ring-4 focus-visible:ring-orange-300 focus-visible:outline-none disabled:opacity-50'
 
 export default function App() {
   const [text, setText] = useState(EXAMPLE)
-  const { state, start, cancel, reset } = useVoiceLookup()
+  const { state, start, cancel, reset, stop, replay } = useVoiceLookup()
   const words = tokenize(text)
   const tooLong = words.length > MAX_WORDS
   const busy = state.status === 'running' || state.status === 'cancelling'
+  const playing = state.status === 'ready' ? state.playing : null
   const revealed = state.status === 'running' ? revealedCount(state.progress, words.length) : 0
 
   const changeText = (value: string) => {
@@ -21,7 +22,7 @@ export default function App() {
     reset()
   }
 
-  const findVoices = (event: FormEvent) => {
+  const read = (event: FormEvent) => {
     event.preventDefault()
     if (!busy && !tooLong && words.length > 0) void start(words)
   }
@@ -40,7 +41,7 @@ export default function App() {
         </header>
 
         <form
-          onSubmit={findVoices}
+          onSubmit={read}
           className="flex flex-col gap-4 rounded-3xl bg-white/80 p-6 shadow-xl shadow-orange-900/10"
         >
           <div className="flex items-baseline justify-between">
@@ -73,23 +74,31 @@ export default function App() {
             >
               Annuler
             </button>
+          ) : playing !== null ? (
+            <button
+              type="button"
+              onClick={stop}
+              className={`${PRIMARY_BUTTON} bg-stone-700 text-white hover:bg-stone-800`}
+            >
+              Arrêter
+            </button>
           ) : (
             <button
               type="submit"
               disabled={busy || tooLong || words.length === 0}
               className={`${PRIMARY_BUTTON} bg-orange-600 text-white hover:bg-orange-700`}
             >
-              {state.status === 'cancelling' ? 'Annulation en cours…' : 'Trouver les voix'}
+              {state.status === 'cancelling' ? 'Annulation en cours…' : 'Lire'}
             </button>
           )}
         </form>
 
         {state.status === 'running' && (
           <div className="flex flex-col gap-2">
-            <p className="text-center font-semibold text-orange-800">Recherche des voix…</p>
+            <p className="text-center font-semibold text-orange-800">Préparation de la voix…</p>
             <div
               role="progressbar"
-              aria-label="Recherche des voix"
+              aria-label="Préparation de la voix"
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={Math.round(Math.min(1, state.progress) * 100)}
@@ -116,20 +125,38 @@ export default function App() {
           </p>
         )}
 
-        {state.status === 'found' ? (
-          <ul aria-label="Voix trouvées" className="flex flex-wrap justify-center gap-2">
-            {state.voices.map(({ word, pronunciation }, index) => (
-              <li
-                key={`${index}-${word}`}
-                className="flex flex-col items-center rounded-2xl bg-white/80 px-3 py-1"
+        {state.status === 'ready' ? (
+          <div className="flex flex-col items-center gap-4">
+            <ul aria-label="Voix trouvées" className="flex flex-wrap justify-center gap-2">
+              {state.voices.map(({ word, location }, index) => (
+                <li
+                  key={`${index}-${word}`}
+                  aria-current={index === playing ? 'true' : undefined}
+                  className={`flex flex-col items-center rounded-2xl px-3 py-1 transition ${
+                    index === playing
+                      ? 'bg-orange-600 text-white'
+                      : 'bg-white/80'
+                  }`}
+                >
+                  <span className="font-semibold">{word}</span>
+                  <span
+                    className={`text-xs ${index === playing ? 'text-orange-100' : 'text-stone-500'}`}
+                  >
+                    {location || 'lieu inconnu'}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            {playing === null && (
+              <button
+                type="button"
+                onClick={replay}
+                className="rounded-full border-2 border-orange-600 px-5 py-2 font-semibold text-orange-700 transition hover:bg-orange-50 focus-visible:ring-4 focus-visible:ring-orange-300 focus-visible:outline-none"
               >
-                <span className="font-semibold">{word}</span>
-                <span className="text-xs text-stone-500">
-                  {pronunciation.location || 'lieu inconnu'}
-                </span>
-              </li>
-            ))}
-          </ul>
+                Réécouter
+              </button>
+            )}
+          </div>
         ) : (
           words.length > 0 && (
             <ul aria-label="Mots à prononcer" className="flex flex-wrap justify-center gap-2">
@@ -138,7 +165,7 @@ export default function App() {
                   key={`${index}-${word}`}
                   className={`rounded-full px-3 py-1 text-sm transition-colors duration-300 ${
                     index < revealed
-                      ? 'bg-orange-600 font-semibold text-white'
+                      ? 'bg-orange-600 text-white'
                       : 'bg-white/70 text-stone-700'
                   }`}
                 >

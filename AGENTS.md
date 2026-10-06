@@ -32,11 +32,17 @@ src/
 ├── lib/                      # Logique pure, zéro React (entièrement testée)
 │   ├── tokenize.ts           # tokenize : texte -> mots (titres Wiktionnaire)
 │   ├── pronunciations.ts     # parsePronunciations / pickPronunciation
-│   ├── wiktionary.ts         # fetchWikitexts : API Wiktionnaire (lots, redirections, cache)
+│   ├── mediawiki.ts          # queryPages : API MediaWiki (lots, redirections, continue, cache)
+│   ├── wiktionary.ts         # fetchWikitexts : wikitexte des pages du Wiktionnaire
+│   ├── commons.ts            # fetchFileUrls : URL des fichiers audio sur Commons
+│   ├── download.ts           # downloadAudio : téléchargements espacés, un à la fois, cache
 │   ├── sentence.ts           # lookupSentence : une voix par mot, ou phrase impossible
+│   ├── synthesis.ts          # prepareSynthesis : mots -> enregistrements décodés
+│   ├── audio.ts              # voiceBounds / normalizationGain / timeline (calculs audio)
 │   └── pacing.ts             # Verrous : 50 mots max, durée 5-8 s, annulation 3 s
-├── useVoiceLookup.ts         # Hook : recherche cadencée, progression, annulation
-├── App.tsx                   # UI (saisie, chargement, voix trouvées)
+├── player.ts                 # Lecture Web Audio (non testé : jsdom n'a pas d'AudioContext)
+├── useVoiceLookup.ts         # Hook : préparation cadencée, annulation, lecture
+├── App.tsx                   # UI (saisie, chargement, lecture mot par mot)
 ├── main.tsx                  # Point d'entrée
 ├── index.css                 # Import Tailwind
 └── vite-env.d.ts             # Types Vite
@@ -52,7 +58,7 @@ tests/
 
 ## Le concept, en détail
 
-- **Découpage** (`src/lib/tokenize.ts`) : mots en minuscules, apostrophes et
+- **Découpage** (`src/lib/tokenize.ts`) : mots avec leur casse, apostrophes et
   traits d'union internes conservés, apostrophe droite convertie en `’` (forme
   utilisée par les titres du Wiktionnaire).
 - **Prononciations** (`src/lib/pronunciations.ts`) : `parsePronunciations` lit
@@ -77,10 +83,23 @@ tests/
   texte est verrouillé pendant ce temps. On peut **annuler** (les requêtes sont
   interrompues via `AbortSignal`) ; l'annulation dure **au moins 3 s**, après
   quoi on peut relancer.
-- **Audio** (à venir) : URL réelle du fichier via l'API Commons
-  (`prop=imageinfo&iiprop=url`). `upload.wikimedia.org` renvoie
-  `Access-Control-Allow-Origin: *`, donc les fichiers peuvent être décodés par
-  la Web Audio API (enchaînement, rognage des silences).
+- **Audio** (`src/lib/commons.ts`, `src/lib/download.ts`, `src/lib/synthesis.ts`) :
+  une requête Commons (`prop=imageinfo&iiprop=url`, 50 fichiers par lot) donne
+  l'URL de chaque fichier, puis les fichiers sont téléchargés **un par un,
+  espacés de 100 ms**, pendant l'attente de 5-8 s. `upload.wikimedia.org`
+  renvoie `Access-Control-Allow-Origin: *`, donc la Web Audio API peut les
+  décoder. Un fichier absent (404) ou indécodable rend la phrase impossible.
+  Trois caches (wikitextes, URL, sons décodés) : relire une phrase déjà lue ne
+  fait **aucun** appel réseau.
+- **Lecture** (`src/lib/audio.ts`, `src/player.ts`) : chaque son est rogné de ses
+  silences (seuil à 5 % du pic, marge de 30 ms), normalisé (pic à 0.8, gain max
+  5), puis les mots sont enchaînés avec 80 ms d'écart. Le mot en cours est mis
+  en avant (`aria-current`). L'`AudioContext` est débloqué dans le clic sur
+  « Lire » (politique d'autoplay des navigateurs). « Réécouter » rejoue sans
+  attente ni réseau.
+- **Appels de test** : ne jamais saturer Wikimedia (un blocage tuerait le
+  projet). Tous les tests mockent `fetch` ; une vérification réelle se limite à
+  une phrase, une fois.
 
 ---
 
@@ -118,7 +137,8 @@ tests/
 - Les tests ne touchent jamais le réseau : mocker `fetch` (`tests/fakeWiktionary.ts`).
 - Les délais se testent avec `vi.useFakeTimers({ shouldAdvanceTime: true })`
   (sans `shouldAdvanceTime`, Testing Library attend un `setTimeout` qui ne part
-  jamais) et `Math.random` mocké pour une durée fixe de 5 s.
+  jamais) et `Math.random` mocké pour une durée fixe de 5 s. `@/player` est
+  remplacé par un faux via `vi.mock` dans les tests de composants.
 
 ### Accessibilité
 - Tout cliquable est un bouton/lien avec libellé accessible ; champs avec label

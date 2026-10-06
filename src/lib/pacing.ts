@@ -1,5 +1,6 @@
 export const MAX_WORDS = 50
 export const CANCEL_COOLDOWN_MS = 3000
+export const AUDIO_SPACING_MS = 100
 const MIN_DURATION_MS = 5000
 const DURATION_JITTER_MS = 3000
 
