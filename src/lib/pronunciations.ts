@@ -6,7 +6,37 @@ export type Pronunciation = {
 
 const HTML_COMMENT = /<!--[\s\S]*?-->/g
 const LISTEN_TEMPLATE = /\{\{écouter\|([^{}]*)\}\}/g
-const PREFERRED_ACCENTS = /vosges|québec|quebec|canada|montréal|shawinigan/i
+const PREFERRED_PLACES_BY_ACCENT = {
+  vosgien: ['vosges'],
+  québécois: ['québec', 'quebec', 'canada', 'montréal', 'shawinigan'],
+  suisse: ['suisse', 'genève', 'lausanne', 'valais', 'vaud', 'neuchâtel', 'fribourg'],
+  sudOuest: [
+    'sud-ouest',
+    'toulouse',
+    'bordeaux',
+    'gironde',
+    'landes',
+    'béarn',
+    'pau',
+    'bayonne',
+    'biarritz',
+    'pays basque',
+    'gers',
+    'agen',
+    'tarbes',
+    'périgord',
+    'dordogne',
+    'montauban',
+    'albi',
+    'aveyron',
+    'millau',
+  ],
+}
+// Lookarounds instead of \b, which ignores accented letters: "Gers" must not match "Angers".
+const PREFERRED_ACCENTS = new RegExp(
+  `(?<![\\p{L}])(?:${Object.values(PREFERRED_PLACES_BY_ACCENT).flat().join('|')})(?![\\p{L}])`,
+  'iu',
+)
 
 export function parsePronunciations(wikitext: string, lang = 'fr'): Pronunciation[] {
   const result: Pronunciation[] = []

@@ -3,8 +3,8 @@
 Application **100% front-end** de synthèse vocale **sans IA et sans
 synthétiseur**. L'utilisateur saisit un texte ; pour chaque mot, l'app interroge
 le **Wiktionnaire francophone**, récupère les enregistrements audio disponibles
-(modèle `{{écouter}}`), choisit de préférence un **accent vosgien ou
-québécois**, puis lit la phrase comme une succession de ces enregistrements.
+(modèle `{{écouter}}`), choisit de préférence un **accent vosgien,
+québécois, suisse ou du Sud-Ouest**, puis lit la phrase comme une succession de ces enregistrements.
 Interface en **français**, une seule page simple et accueillante. Partage la
 stack et les conventions de `hide-words`.
 
@@ -42,6 +42,8 @@ src/
 │   └── pacing.ts             # Verrous : 50 mots max, durée 5-8 s, annulation 3 s
 ├── player.ts                 # Lecture Web Audio (non testé : jsdom n'a pas d'AudioContext)
 ├── useVoiceLookup.ts         # Hook : préparation cadencée, annulation, lecture
+├── Title.tsx                 # Titre dessiné (police Caveat, crayon, ondes de voix)
+├── WordList.tsx              # Bulles de mots (préparation puis lecture), à la place du textarea
 ├── App.tsx                   # UI (saisie, chargement, lecture mot par mot)
 ├── main.tsx                  # Point d'entrée
 ├── index.css                 # Import Tailwind
@@ -64,7 +66,8 @@ tests/
 - **Prononciations** (`src/lib/pronunciations.ts`) : `parsePronunciations` lit
   le wikitexte d'une page et extrait chaque `{{écouter|<lieu>|<API>|audio=...|lang=fr}}`
   (paramètres positionnels : lieu puis API, ordre des nommés libre).
-  `pickPronunciation` préfère un lieu vosgien ou québécois, sinon le premier.
+  `pickPronunciation` préfère un accent vosgien, québécois, suisse ou du
+  Sud-Ouest (liste de lieux par accent), sinon le premier enregistrement.
 - **API Wiktionnaire** (`src/lib/wiktionary.ts`) : `https://fr.wiktionary.org/w/api.php`
   avec `action=query&prop=revisions&rvprop=content&rvslots=main&redirects=1&formatversion=2&origin=*`.
   `origin=*` active le CORS anonyme ; `titles` accepte jusqu'à 50 titres par

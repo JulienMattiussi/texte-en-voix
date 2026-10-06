@@ -42,6 +42,28 @@ describe('pickPronunciation', () => {
     expect(pickPronunciation(parsePronunciations(WIKITEXT))?.location).toBe('Canada (Shawinigan)')
   })
 
+  it.each([
+    'Suisse (canton du Valais)',
+    'Genève (Suisse)',
+    'France (Toulouse)',
+    'Béarn (France)',
+    'Gers (France)',
+    'France (Sud-Ouest)',
+  ])('also prefers Swiss and South-West accents: %s', (location) => {
+    const preferred = { audio: 'b.wav', location, ipa: '' }
+    expect(pickPronunciation([{ audio: 'a.wav', location: 'Paris', ipa: '' }, preferred])).toBe(
+      preferred,
+    )
+  })
+
+  it.each(['Angers (France)', 'Paulhan (France)', 'Lyon (France)'])(
+    'does not mistake %s for a preferred place',
+    (location) => {
+      const first = { audio: 'a.wav', location: 'Paris', ipa: '' }
+      expect(pickPronunciation([first, { audio: 'b.wav', location, ipa: '' }])).toBe(first)
+    },
+  )
+
   it('falls back to the first recording', () => {
     const [paris] = parsePronunciations(WIKITEXT)
     expect(pickPronunciation([paris!])).toBe(paris)

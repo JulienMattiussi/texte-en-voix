@@ -1,5 +1,5 @@
 import { buildQueryUrl } from '@/lib/mediawiki'
-import { fetchWikitexts, WIKTIONARY_API_URL } from '@/lib/wiktionary'
+import { fetchWikitexts, WIKTIONARY_API_URL, wiktionaryPageUrl } from '@/lib/wiktionary'
 import { apiResponse, fakeWiktionary, requestedTitles } from '../fakeWiktionary'
 
 describe('buildQueryUrl', () => {
@@ -17,6 +17,17 @@ describe('buildQueryUrl', () => {
   it('appends continuation parameters', () => {
     const url = new URL(buildQueryUrl(WIKTIONARY_API_URL, {}, ['chat'], { rvcontinue: '42' }))
     expect(url.searchParams.get('rvcontinue')).toBe('42')
+  })
+})
+
+describe('wiktionaryPageUrl', () => {
+  it('links to the page of a title, spaces as underscores', () => {
+    expect(wiktionaryPageUrl('aujourd’hui')).toBe(
+      'https://fr.wiktionary.org/wiki/aujourd%E2%80%99hui',
+    )
+    expect(wiktionaryPageUrl('pomme de terre')).toBe(
+      'https://fr.wiktionary.org/wiki/pomme_de_terre',
+    )
   })
 })
 

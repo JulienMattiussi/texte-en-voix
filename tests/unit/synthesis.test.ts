@@ -17,9 +17,9 @@ describe('prepareSynthesis', () => {
     expect(result).toEqual({
       status: 'ready',
       voices: [
-        { word: 'Salut', location: 'France (Vosges)', audio: 'salut.wav' },
-        { word: 'la', location: 'Canada (Québec)', audio: 'la.wav' },
-        { word: 'salut', location: 'France (Vosges)', audio: 'salut.wav' },
+        { word: 'Salut', title: 'salut', location: 'France (Vosges)', audio: 'salut.wav' },
+        { word: 'la', title: 'la', location: 'Canada (Québec)', audio: 'la.wav' },
+        { word: 'salut', title: 'salut', location: 'France (Vosges)', audio: 'salut.wav' },
       ],
     })
   })

@@ -57,10 +57,9 @@ describe('App', () => {
     vi.unstubAllGlobals()
   })
 
-  it('lists and counts the words of the typed text', async () => {
+  it('counts the words of the typed text', async () => {
     const { typeText } = setup('Salut la compagnie')
     await typeText()
-    expect(itemsOf('Mots à prononcer')).toEqual(['Salut', 'la', 'compagnie'])
     expect(screen.getByText('3 / 50 mots')).toBeInTheDocument()
   })
 
@@ -78,13 +77,18 @@ describe('App', () => {
     await read()
 
     expect(screen.getByRole('progressbar', { name: 'Préparation de la voix' })).toBeInTheDocument()
-    expect(screen.getByLabelText('Votre texte')).toBeDisabled()
+    expect(screen.queryByLabelText('Votre texte')).not.toBeInTheDocument()
+    expect(itemsOf('Mots en préparation')).toEqual(['Salut\u00a0', 'la\u00a0'])
+    expect(screen.queryByRole('link')).not.toBeInTheDocument()
     await wait(4800)
     expect(screen.queryByRole('list', { name: 'Voix trouvées' })).not.toBeInTheDocument()
 
     await wait(300)
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
     expect(itemsOf('Voix trouvées')).toEqual(['SalutFrance (Vosges)', 'laCanada (Québec)'])
+    const link = screen.getByRole('link', { name: /Salut/ })
+    expect(link).toHaveAttribute('href', 'https://fr.wiktionary.org/wiki/salut')
+    expect(link).toHaveAttribute('target', 'wiktionnaire')
     expect(fakePlayer.unlock).toHaveBeenCalled()
     expect(fakePlayer.play).toHaveBeenCalledOnce()
     const [buffers, events] = fakePlayer.play.mock.calls[0]!
@@ -114,6 +118,19 @@ describe('App', () => {
     expect(screen.getByRole('button', { name: 'Arrêter' })).toBeInTheDocument()
   })
 
+  it('goes back to the text, unchanged, to edit it', async () => {
+    vi.stubGlobal('fetch', fakeWiktionary(WIKITEXTS))
+    const { user, typeText, read } = setup('Salut la')
+    await typeText()
+    await read()
+    await wait(5100)
+
+    await user.click(screen.getByRole('button', { name: 'Modifier le texte' }))
+    expect(fakePlayer.stop).toHaveBeenCalled()
+    expect(screen.queryByRole('list', { name: 'Voix trouvées' })).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Votre texte')).toHaveValue('Salut la')
+  })
+
   it('cancels in at least 3 seconds, then allows a new search', async () => {
     const fetchFn = fakeWiktionary(WIKITEXTS)
     vi.stubGlobal('fetch', fetchFn)
@@ -124,6 +141,7 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: 'Annuler' }))
 
     expect(screen.getByRole('button', { name: 'Annulation en cours…' })).toBeDisabled()
+    expect(screen.getByLabelText('Votre texte')).toBeDisabled()
     expect(fetchFn.mock.calls[0]![1]?.signal?.aborted).toBe(true)
     await wait(2900)
     expect(screen.getByRole('button', { name: 'Annulation en cours…' })).toBeDisabled()

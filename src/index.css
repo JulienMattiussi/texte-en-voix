@@ -1,9 +1,29 @@
 @import 'tailwindcss';
 
+@theme {
+  --font-hand: 'Caveat Variable', cursive;
+}
+
 @layer base {
   button:not(:disabled),
   [role='button']:not(:disabled),
   a[href] {
     cursor: pointer;
+  }
+}
+
+@keyframes tv-wave {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .tv-wave {
+    animation: tv-wave 1.6s ease-in-out infinite;
   }
 }
