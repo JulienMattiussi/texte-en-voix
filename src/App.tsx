@@ -4,9 +4,12 @@ import { tokenize } from '@/lib/tokenize'
 import { wiktionaryPageUrl } from '@/lib/wiktionary'
 import { useVoiceLookup } from '@/useVoiceLookup'
 import { Title } from '@/Title'
+import { WiktionaryLogo } from '@/WiktionaryLogo'
 import { WordList } from '@/WordList'
 
-const EXAMPLE = 'Bonjour, aujourd’hui le canard mange une tarte aux myrtilles.'
+const LINGUA_LIBRE_URL = 'https://lingualibre.org/app/'
+
+const EXAMPLE = 'Bonjour, aujourd’hui le canard mange une tarte aux brimbelles. C’est un brigand.'
 
 const BUTTON =
   'rounded-full px-8 py-3 text-lg font-bold transition focus-visible:ring-4 focus-visible:ring-orange-300 focus-visible:outline-none disabled:opacity-50'
@@ -40,10 +43,24 @@ export default function App() {
       <main className="mx-auto flex max-w-2xl flex-col gap-8 px-4 py-12 sm:py-20">
         <header className="flex flex-col gap-3 text-center">
           <Title />
-          <p className="text-lg text-stone-600">
-            La synthèse vocale sans IA ni synthétiseur : chaque mot est lu par un vrai humain du
-            Wiktionnaire, de préférence avec l’accent vosgien, québécois, suisse ou du Sud-Ouest.
-          </p>
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-lg text-stone-600">
+              La synthèse vocale sans IA ni synthétiseur : chaque mot est lu par un véritable être
+              humain.
+            </p>
+            <p className="flex items-center justify-center gap-1.5 text-sm text-stone-500">
+              Source :
+              <a
+                href="https://fr.wiktionary.org/"
+                target="wiktionnaire"
+                rel="noopener"
+                className="inline-flex items-center gap-1 font-medium text-stone-700 underline-offset-2 outline-none hover:underline focus-visible:ring-4 focus-visible:ring-orange-300"
+              >
+                <WiktionaryLogo className="size-4" />
+                Wiktionnaire
+              </a>
+            </p>
+          </div>
         </header>
 
         <form
@@ -121,9 +138,11 @@ export default function App() {
               <WordList
                 label="Voix trouvées"
                 minHeight={boxHeight}
-                items={state.voices.map(({ word, title, location }, index) => ({
+                items={state.voices.map(({ word, title, location, lemma }, index) => ({
                   word,
-                  detail: location || 'lieu inconnu',
+                  detail: [location || 'lieu inconnu', lemma && `via ${lemma}`]
+                    .filter(Boolean)
+                    .join(', '),
                   href: wiktionaryPageUrl(title),
                   active: index === state.playing,
                 }))}
@@ -149,7 +168,35 @@ export default function App() {
         {state.status === 'impossible' && (
           <div role="alert" className="rounded-3xl bg-red-50 p-6 text-center text-red-900">
             <p className="text-lg font-bold">La synthèse vocale n’est pas possible.</p>
-            <p className="mt-1">Mots introuvables : {state.missing.join(', ')}</p>
+            <p className="mt-1">Personne n’a encore enregistré ces mots :</p>
+            <ul aria-label="Mots introuvables" className="mt-3 flex flex-wrap justify-center gap-2">
+              {state.missing.map((word) => (
+                <li key={word}>
+                  <a
+                    href={wiktionaryPageUrl(word.toLocaleLowerCase('fr'))}
+                    target="wiktionnaire"
+                    rel="noopener"
+                    title={`« ${word} » sur le Wiktionnaire`}
+                    className="inline-block rounded-2xl border-2 border-red-300 bg-white px-3 py-1 font-semibold text-red-900 transition outline-none hover:bg-red-100 focus-visible:ring-4 focus-visible:ring-red-300"
+                  >
+                    {word}
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-4 text-sm">
+              <span aria-hidden="true">🎙️ </span>
+              Prêtez-leur votre voix sur{' '}
+              <a
+                href={LINGUA_LIBRE_URL}
+                target="lingualibre"
+                rel="noopener"
+                className="font-semibold underline underline-offset-2 outline-none hover:text-red-700 focus-visible:ring-4 focus-visible:ring-red-300"
+              >
+                Lingua Libre
+              </a>{' '}
+              : vos enregistrements rejoindront le Wiktionnaire.
+            </p>
           </div>
         )}
 

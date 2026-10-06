@@ -48,6 +48,49 @@ describe('lookupSentence', () => {
     expect(new URL(String(fetchFn.mock.calls[0]![0])).searchParams.get('titles')).toBe('chat|Chat')
   })
 
+  describe('flexions without recording', () => {
+    const flexion = (ipa: string, lemma: string) =>
+      `== {{langue|fr}} ==\n'''x''' {{pron|${ipa}|fr}}\n# ''Pluriel de'' [[${lemma}]].`
+    const lemmaPage = (ipa: string, audio: string) =>
+      `== {{langue|fr}} ==\n'''x''' {{pron|${ipa}|fr}}\n${listen('France (Vosges)', audio)}`
+
+    it('borrow the voice of their base word when it sounds the same', async () => {
+      const fetchFn = fakeWiktionary({
+        mirabelles: flexion('mi.ʁa.bɛl', 'mirabelle'),
+        mirabelle: lemmaPage('mi.ʁa.bɛl', 'mirabelle.wav'),
+      })
+      const result = await lookupSentence(['Mirabelles'], { fetchFn })
+      expect(result).toEqual({
+        status: 'found',
+        voices: [
+          {
+            word: 'Mirabelles',
+            title: 'mirabelles',
+            lemma: 'mirabelle',
+            pronunciation: { location: 'France (Vosges)', ipa: '', audio: 'mirabelle.wav' },
+          },
+        ],
+      })
+      expect(fetchFn).toHaveBeenCalledTimes(2)
+    })
+
+    it('stay missing when the base word sounds different', async () => {
+      const result = await lookupSentence(['mangeons'], {
+        fetchFn: fakeWiktionary({
+          mangeons: flexion('mɑ̃.ʒɔ̃', 'manger'),
+          manger: lemmaPage('mɑ̃.ʒe', 'manger.wav'),
+        }),
+      })
+      expect(result).toEqual({ status: 'impossible', missing: ['mangeons'] })
+    })
+  })
+
+  it('makes no extra query when every word has a recording', async () => {
+    const fetchFn = fakeWiktionary(wikitexts)
+    await lookupSentence(['chat'], { fetchFn })
+    expect(fetchFn).toHaveBeenCalledOnce()
+  })
+
   it('gives up when any word has no French recording, listing each missing word once', async () => {
     const result = await lookupSentence(['chat', 'zzzqx', 'Le', 'zzzqx'], {
       fetchFn: fakeWiktionary({}),

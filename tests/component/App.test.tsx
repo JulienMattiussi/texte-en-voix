@@ -79,7 +79,9 @@ describe('App', () => {
     expect(screen.getByRole('progressbar', { name: 'Préparation de la voix' })).toBeInTheDocument()
     expect(screen.queryByLabelText('Votre texte')).not.toBeInTheDocument()
     expect(itemsOf('Mots en préparation')).toEqual(['Salut\u00a0', 'la\u00a0'])
-    expect(screen.queryByRole('link')).not.toBeInTheDocument()
+    expect(
+      within(screen.getByRole('list', { name: 'Mots en préparation' })).queryByRole('link'),
+    ).not.toBeInTheDocument()
     await wait(4800)
     expect(screen.queryByRole('list', { name: 'Voix trouvées' })).not.toBeInTheDocument()
 
@@ -159,7 +161,12 @@ describe('App', () => {
 
     const alert = screen.getByRole('alert')
     expect(alert).toHaveTextContent('La synthèse vocale n’est pas possible.')
-    expect(alert).toHaveTextContent('Mots introuvables : zzzqx')
+    const page = within(alert).getByRole('link', { name: 'zzzqx' })
+    expect(page).toHaveAttribute('href', 'https://fr.wiktionary.org/wiki/zzzqx')
+    expect(page).toHaveAttribute('target', 'wiktionnaire')
+    const record = within(alert).getByRole('link', { name: 'Lingua Libre' })
+    expect(record).toHaveAttribute('href', 'https://lingualibre.org/app/')
+    expect(record).toHaveAttribute('target', 'lingualibre')
   })
 
   it('reports an unreachable Wiktionary', async () => {

@@ -54,10 +54,16 @@ export function parsePronunciations(wikitext: string, lang = 'fr'): Pronunciatio
   return result
 }
 
-function isPreferredAccent(pronunciation: Pronunciation): boolean {
-  return PREFERRED_ACCENTS.test(pronunciation.location)
+const NEUTRAL_LOCATION = /^\s*(?:france)?\s*$|(?<![\p{L}])paris(?![\p{L}])/iu
+
+function accentRank({ location }: Pronunciation): number {
+  if (PREFERRED_ACCENTS.test(location)) return 0
+  return NEUTRAL_LOCATION.test(location) ? 2 : 1
 }
 
 export function pickPronunciation(pronunciations: Pronunciation[]): Pronunciation | undefined {
-  return pronunciations.find(isPreferredAccent) ?? pronunciations[0]
+  return pronunciations.reduce<Pronunciation | undefined>(
+    (best, candidate) => (!best || accentRank(candidate) < accentRank(best) ? candidate : best),
+    undefined,
+  )
 }

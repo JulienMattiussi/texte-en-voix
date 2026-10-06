@@ -59,10 +59,29 @@ describe('pickPronunciation', () => {
   it.each(['Angers (France)', 'Paulhan (France)', 'Lyon (France)'])(
     'does not mistake %s for a preferred place',
     (location) => {
-      const first = { audio: 'a.wav', location: 'Paris', ipa: '' }
+      const first = { audio: 'a.wav', location: 'Lille (France)', ipa: '' }
       expect(pickPronunciation([first, { audio: 'b.wav', location, ipa: '' }])).toBe(first)
     },
   )
+
+  it.each(['France (Lyon)', 'Belgique', 'Batna (Algérie)', 'Muntzenheim (France)'])(
+    'prefers another regional accent (%s) over a plain France or Paris one',
+    (location) => {
+      const regional = { audio: 'c.wav', location, ipa: '' }
+      const plain = [
+        { audio: 'a.wav', location: 'France', ipa: '' },
+        { audio: 'b.wav', location: 'France (Paris)', ipa: '' },
+        { audio: 'd.wav', location: '', ipa: '' },
+      ]
+      expect(pickPronunciation([...plain, regional])).toBe(regional)
+    },
+  )
+
+  it('keeps the first preferred accent when there are several', () => {
+    const vosges = { audio: 'a.wav', location: 'France (Vosges)', ipa: '' }
+    const quebec = { audio: 'b.wav', location: 'Québec (Canada)', ipa: '' }
+    expect(pickPronunciation([{ ...vosges, location: 'Lyon' }, vosges, quebec])).toBe(vosges)
+  })
 
   it('falls back to the first recording', () => {
     const [paris] = parsePronunciations(WIKITEXT)

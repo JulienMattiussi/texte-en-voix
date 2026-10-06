@@ -37,6 +37,7 @@ src/
 │   ├── commons.ts            # fetchFileUrls : URL des fichiers audio sur Commons
 │   ├── download.ts           # downloadAudio : téléchargements espacés, un à la fois, cache
 │   ├── sentence.ts           # lookupSentence : une voix par mot, ou phrase impossible
+│   ├── lemma.ts              # flexionLemma / frenchIpas / sameIpa : repli par le mot de base
 │   ├── synthesis.ts          # prepareSynthesis : mots -> enregistrements décodés
 │   ├── audio.ts              # voiceBounds / normalizationGain / timeline (calculs audio)
 │   └── pacing.ts             # Verrous : 50 mots max, durée 5-8 s, annulation 3 s
@@ -67,7 +68,10 @@ tests/
   le wikitexte d'une page et extrait chaque `{{écouter|<lieu>|<API>|audio=...|lang=fr}}`
   (paramètres positionnels : lieu puis API, ordre des nommés libre).
   `pickPronunciation` préfère un accent vosgien, québécois, suisse ou du
-  Sud-Ouest (liste de lieux par accent), sinon le premier enregistrement.
+  Sud-Ouest (liste de lieux par accent), puis n'importe quel autre accent
+  régional (« France (Lyon) », « Belgique »...), et seulement en dernier un
+  accent neutre (lieu vide, « France » seul, ou Paris). À rang égal, le premier
+  enregistrement de la page gagne.
 - **API Wiktionnaire** (`src/lib/wiktionary.ts`) : `https://fr.wiktionary.org/w/api.php`
   avec `action=query&prop=revisions&rvprop=content&rvslots=main&redirects=1&formatversion=2&origin=*`.
   `origin=*` active le CORS anonyme ; `titles` accepte jusqu'à 50 titres par
@@ -79,6 +83,13 @@ tests/
   minuscules (titres sensibles à la casse). Si **un seul** mot n'a aucun
   enregistrement français, la phrase entière est refusée (« La synthèse vocale
   n'est pas possible. »).
+- **Repli par le mot de base** (`src/lib/lemma.ts`, `src/lib/sentence.ts`) : un
+  pluriel ou une flexion sans enregistrement (« mirabelles ») emprunte la voix
+  de son mot de base (« Pluriel de [[mirabelle]] » ou `s=` du tableau de
+  flexions), **seulement si la prononciation écrite `{{pron}}` est identique**
+  (points, accents toniques et liaisons ignorés). « mangeons » n'emprunte donc
+  pas « manger ». Une seule requête de plus, et seulement s'il manque des mots.
+  La bulle affiche « via mirabelle ».
 - **Verrous** (`src/lib/pacing.ts`, `src/useVoiceLookup.ts`) : pour ménager
   Wikimedia et donner une attente réaliste. Texte limité à **50 mots**. Une
   recherche dure **au moins 5 s** (tirage entre 5 et 8 s, plus si le réseau est

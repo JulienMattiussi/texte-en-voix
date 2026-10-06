@@ -2,7 +2,13 @@ import { fetchFileUrls } from '@/lib/commons'
 import { downloadAudio } from '@/lib/download'
 import { lookupSentence } from '@/lib/sentence'
 
-export type Voice<T> = { word: string; title: string; location: string; audio: T }
+export type Voice<T> = {
+  word: string
+  title: string
+  location: string
+  lemma?: string
+  audio: T
+}
 
 export type Synthesis<T> =
   { status: 'ready'; voices: Voice<T>[] } | { status: 'impossible'; missing: string[] }
@@ -44,11 +50,11 @@ export async function prepareSynthesis<T>(
 
   const voices: Voice<T>[] = []
   const missing = new Set<string>()
-  for (const { word, title, pronunciation } of lookup.voices) {
+  for (const { word, title, pronunciation, lemma } of lookup.voices) {
     const url = urls.get(pronunciation.audio)
     const decoded = url === undefined ? undefined : audio.get(url)
     if (decoded === undefined) missing.add(word)
-    else voices.push({ word, title, location: pronunciation.location, audio: decoded })
+    else voices.push({ word, title, location: pronunciation.location, lemma, audio: decoded })
   }
 
   return missing.size > 0
