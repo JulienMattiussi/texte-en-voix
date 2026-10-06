@@ -26,6 +26,17 @@ describe('parsePronunciations', () => {
   })
 })
 
+describe('parsePronunciations with HTML comments', () => {
+  it('ignores comments, including commented-out recordings', () => {
+    const wikitext = `
+* {{écouter|lang=fr|France <!-- précisez svp la ville -->||audio=aux.wav}}
+<!-- * {{écouter|lang=fr|France (Vosges)||audio=old.wav}} -->`
+    expect(parsePronunciations(wikitext)).toEqual([
+      { audio: 'aux.wav', location: 'France', ipa: '' },
+    ])
+  })
+})
+
 describe('pickPronunciation', () => {
   it('prefers a Vosges or Quebec accent', () => {
     expect(pickPronunciation(parsePronunciations(WIKITEXT))?.location).toBe('Canada (Shawinigan)')

@@ -31,8 +31,12 @@ stack et les conventions de `hide-words`.
 src/
 ├── lib/                      # Logique pure, zéro React (entièrement testée)
 │   ├── tokenize.ts           # tokenize : texte -> mots (titres Wiktionnaire)
-│   └── pronunciations.ts     # parsePronunciations / pickPronunciation
-├── App.tsx                   # UI (saisie, liste des mots)
+│   ├── pronunciations.ts     # parsePronunciations / pickPronunciation
+│   ├── wiktionary.ts         # fetchWikitexts : API Wiktionnaire (lots, redirections, cache)
+│   ├── sentence.ts           # lookupSentence : une voix par mot, ou phrase impossible
+│   └── pacing.ts             # Verrous : 50 mots max, durée 5-8 s, annulation 3 s
+├── useVoiceLookup.ts         # Hook : recherche cadencée, progression, annulation
+├── App.tsx                   # UI (saisie, chargement, voix trouvées)
 ├── main.tsx                  # Point d'entrée
 ├── index.css                 # Import Tailwind
 └── vite-env.d.ts             # Types Vite
@@ -55,9 +59,24 @@ tests/
   le wikitexte d'une page et extrait chaque `{{écouter|<lieu>|<API>|audio=...|lang=fr}}`
   (paramètres positionnels : lieu puis API, ordre des nommés libre).
   `pickPronunciation` préfère un lieu vosgien ou québécois, sinon le premier.
-- **API Wiktionnaire** (à venir) : `https://fr.wiktionary.org/w/api.php` avec
-  `action=query&prop=revisions&rvprop=content&rvslots=main&formatversion=2&origin=*`.
-  `origin=*` active le CORS anonyme ; `titles` accepte jusqu'à 50 mots par appel.
+- **API Wiktionnaire** (`src/lib/wiktionary.ts`) : `https://fr.wiktionary.org/w/api.php`
+  avec `action=query&prop=revisions&rvprop=content&rvslots=main&redirects=1&formatversion=2&origin=*`.
+  `origin=*` active le CORS anonyme ; `titles` accepte jusqu'à 50 titres par
+  appel. Les lots partent **l'un après l'autre** (jamais en parallèle), les
+  redirections (`aujourd'hui` -> `aujourd’hui`) sont suivies, et la pagination
+  `continue` est gérée. Un cache (titre -> wikitexte ou `null` si absent) évite
+  de redemander un titre déjà vu.
+- **Phrase** (`src/lib/sentence.ts`) : chaque mot est cherché tel quel puis en
+  minuscules (titres sensibles à la casse). Si **un seul** mot n'a aucun
+  enregistrement français, la phrase entière est refusée (« La synthèse vocale
+  n'est pas possible. »).
+- **Verrous** (`src/lib/pacing.ts`, `src/useVoiceLookup.ts`) : pour ménager
+  Wikimedia et donner une attente réaliste. Texte limité à **50 mots**. Une
+  recherche dure **au moins 5 s** (tirage entre 5 et 8 s, plus si le réseau est
+  lent), avec barre de progression et mots révélés au fil de l'attente ; le
+  texte est verrouillé pendant ce temps. On peut **annuler** (les requêtes sont
+  interrompues via `AbortSignal`) ; l'annulation dure **au moins 3 s**, après
+  quoi on peut relancer.
 - **Audio** (à venir) : URL réelle du fichier via l'API Commons
   (`prop=imageinfo&iiprop=url`). `upload.wikimedia.org` renvoie
   `Access-Control-Allow-Origin: *`, donc les fichiers peuvent être décodés par
@@ -96,7 +115,10 @@ tests/
 ### Tests
 - **Logique pure entièrement testée** (`src/lib/`).
 - **Tests de composants** sur les interactions clés via Testing Library.
-- Les tests ne touchent jamais le réseau : mocker `fetch`.
+- Les tests ne touchent jamais le réseau : mocker `fetch` (`tests/fakeWiktionary.ts`).
+- Les délais se testent avec `vi.useFakeTimers({ shouldAdvanceTime: true })`
+  (sans `shouldAdvanceTime`, Testing Library attend un `setTimeout` qui ne part
+  jamais) et `Math.random` mocké pour une durée fixe de 5 s.
 
 ### Accessibilité
 - Tout cliquable est un bouton/lien avec libellé accessible ; champs avec label

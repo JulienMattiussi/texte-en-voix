@@ -4,12 +4,13 @@ export type Pronunciation = {
   ipa: string
 }
 
+const HTML_COMMENT = /<!--[\s\S]*?-->/g
 const LISTEN_TEMPLATE = /\{\{écouter\|([^{}]*)\}\}/g
 const PREFERRED_ACCENTS = /vosges|québec|quebec|canada|montréal|shawinigan/i
 
 export function parsePronunciations(wikitext: string, lang = 'fr'): Pronunciation[] {
   const result: Pronunciation[] = []
-  for (const [, body = ''] of wikitext.matchAll(LISTEN_TEMPLATE)) {
+  for (const [, body = ''] of wikitext.replace(HTML_COMMENT, '').matchAll(LISTEN_TEMPLATE)) {
     const positional: string[] = []
     const named: Record<string, string> = {}
     for (const part of body.split('|')) {
