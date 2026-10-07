@@ -72,6 +72,50 @@ describe('App', () => {
     )
   })
 
+  it('opens a shared link with its sentence, then cleans the address', () => {
+    history.replaceState(null, '', '/#texte=Le%20canard%20est%20un%20brigand')
+    setup('')
+    expect(screen.getByLabelText('Votre texte')).toHaveValue('Le canard est un brigand')
+    expect(location.hash).toBe('')
+  })
+
+  describe('sharing a sentence', () => {
+    async function readSentence() {
+      vi.stubGlobal('fetch', fakeWikimedia(WIKITEXTS))
+      const { user, typeText, read } = setup('Salut la')
+      await typeText()
+      await read()
+      await wait(5100)
+      return user
+    }
+
+    afterEach(() => {
+      Object.defineProperty(navigator, 'share', { value: undefined, configurable: true })
+    })
+
+    it('uses the native share sheet when the device has one', async () => {
+      const share = vi.fn().mockResolvedValue(undefined)
+      Object.defineProperty(navigator, 'share', { value: share, configurable: true })
+      const user = await readSentence()
+      await user.click(screen.getByRole('button', { name: 'Partager' }))
+      expect(share).toHaveBeenCalledWith({
+        title: 'Texte en voix',
+        text: '« Salut la »',
+        url: `${location.origin}/#texte=Salut+la`,
+      })
+    })
+
+    it('copies the link otherwise', async () => {
+      const user = await readSentence()
+      const writeText = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue(undefined)
+      await user.click(screen.getByRole('button', { name: 'Partager' }))
+      expect(writeText).toHaveBeenCalledWith(`${location.origin}/#texte=Salut+la`)
+      expect(screen.getByRole('status')).toHaveTextContent('Lien copié')
+      await wait(2000)
+      expect(screen.getByRole('status')).toBeEmptyDOMElement()
+    })
+  })
+
   it('counts the words of the typed text', async () => {
     const { typeText } = setup('Salut la compagnie')
     await typeText()

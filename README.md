@@ -55,6 +55,8 @@ Québec, « canard » à Toulouse. Le résultat est haché, imprévisible, et
   et le mot en cours mis en avant pendant la lecture.
 - 🔗 **Chaque mot mène à sa page** du Wiktionnaire. Les mots introuvables aussi,
   avec une invitation à leur **prêter votre voix** sur Lingua Libre.
+- 📤 **Partager une phrase** : un lien qui ouvre le site avec la phrase déjà
+  saisie, via le menu de partage du téléphone ou copié sur ordinateur.
 - ⏳ **Une attente assumée** : au moins 5 secondes de préparation, avec des
   messages de chargement parfaitement bidons (« On réveille le Vosgien… »).
 - 🌗 **Mode sombre**, mobile, accessible au clavier et aux lecteurs d'écran.

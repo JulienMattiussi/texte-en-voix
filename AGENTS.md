@@ -45,13 +45,15 @@ src/
 │   ├── pacing.ts             # Verrous : 50 mots max, durée 5-8 s, annulation 3 s
 │   ├── messages.ts           # Messages bidons de chargement / déchargement, rotation
 │   ├── examples.ts           # Phrases d'exemple (vérifiées en ligne)
-│   └── random.ts             # pickRandom / pickRandomIndex
+│   ├── random.ts             # pickRandom / pickRandomIndex
+│   └── share.ts              # shareUrl / textFromHash : le texte dans l'adresse (#texte=...)
 ├── player.ts                 # Lecture Web Audio (non testé : jsdom n'a pas d'AudioContext)
 ├── useSynthesis.ts           # Hook : préparation cadencée, annulation, lecture
 ├── Title.tsx                 # Titre dessiné (police Caveat, crayon, ondes de voix)
 ├── WiktionaryLogo.tsx        # Petite tuile « W » de la ligne « Source : Wiktionnaire »
 ├── WordList.tsx              # Bulles de mots (préparation puis lecture), à la place du textarea
 ├── ProgressBar.tsx           # Barre de progression de la préparation
+├── ShareButton.tsx           # « Partager » : menu natif du téléphone, sinon copie du lien
 ├── MissingWords.tsx          # Encart « synthèse impossible » + invitation Lingua Libre
 ├── App.tsx                   # Page : saisie, préparation, lecture
 ├── main.tsx                  # Point d'entrée
@@ -148,6 +150,14 @@ tests/
   pointent aussi vers le Wiktionnaire et un encart invite à les enregistrer sur
   Lingua Libre (`https://lingualibre.org/app/`, qui ne permet pas de
   pré-remplir le mot).
+- **Partage** (`src/lib/share.ts`, `src/ShareButton.tsx`) : après la lecture,
+  « Partager » produit `<site>/#texte=<phrase>`. Le texte est **après le `#`** :
+  jamais envoyé au serveur, donc aucune limite de longueur côté hébergeur et rien
+  dans ses journaux. Menu de partage natif (`navigator.share`) s'il existe, sinon
+  copie dans le presse-papiers (« Lien copié ! »), sinon `prompt`. À l'ouverture
+  d'un lien partagé, la phrase pré-remplit le textarea et l'adresse est nettoyée ;
+  le visiteur doit cliquer sur « Lire » (politique d'autoplay). Pas de fichier
+  audio partagé : un montage CC BY-SA serait une œuvre dérivée à créditer.
 - **Accueil et attente** (`src/lib/examples.ts`, `src/lib/messages.ts`) : une
   phrase d'exemple est tirée au hasard à l'arrivée. **Chaque nouvelle phrase
   d'exemple doit être vérifiée en ligne** (tous les mots en un seul lot). Pendant

@@ -1,12 +1,15 @@
-import { useRef, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { EXAMPLES } from '@/lib/examples'
 import { MAX_WORDS, revealedCount } from '@/lib/pacing'
 import { pickRandom } from '@/lib/random'
+import { textFromHash } from '@/lib/share'
 import { tokenize } from '@/lib/tokenize'
 import { WIKTIONARY_TARGET, WIKTIONARY_URL, wiktionaryPageUrl } from '@/lib/wiktionary'
 import { useSynthesis } from '@/useSynthesis'
+import { CrossIcon, PencilIcon, PlayIcon, ReplayIcon, StopIcon } from '@/icons'
 import { MissingWords } from '@/MissingWords'
 import { ProgressBar } from '@/ProgressBar'
+import { ShareButton } from '@/ShareButton'
 import { Title } from '@/Title'
 import { WiktionaryLogo } from '@/WiktionaryLogo'
 import { WordList } from '@/WordList'
@@ -15,15 +18,19 @@ const COMMONS_URL = 'https://commons.wikimedia.org/'
 const AUTHOR_URL = 'https://yavadeus.vercel.app/'
 
 const BUTTON =
-  'rounded-full px-8 py-3 text-lg font-bold transition focus-visible:ring-4 focus-visible:ring-orange-300 focus-visible:outline-none disabled:opacity-50'
+  'inline-flex items-center justify-center gap-2 rounded-full px-8 py-3 text-lg font-bold transition focus-visible:ring-4 focus-visible:ring-orange-300 focus-visible:outline-none disabled:opacity-50'
 const PRIMARY = `${BUTTON} bg-orange-600 text-white shadow-lg hover:bg-orange-700`
 const DARK = `${BUTTON} bg-stone-700 dark:bg-stone-600 text-white shadow-lg hover:bg-stone-800 dark:hover:bg-stone-500`
 const SECONDARY = `${BUTTON} border-2 border-orange-600 text-orange-700 dark:text-orange-300 hover:bg-orange-50 dark:hover:bg-stone-800`
 
 export default function App() {
-  const [text, setText] = useState(() => pickRandom(EXAMPLES))
+  const [text, setText] = useState(() => textFromHash(location.hash) ?? pickRandom(EXAMPLES))
   const [boxHeight, setBoxHeight] = useState<number>()
   const textarea = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    if (location.hash) history.replaceState(null, '', `${location.pathname}${location.search}`)
+  }, [])
   const { state, start, cancel, reset, stop, replay } = useSynthesis()
   const words = tokenize(text)
   const tooLong = words.length > MAX_WORDS
@@ -72,8 +79,8 @@ export default function App() {
         >
           {busy ? (
             <>
-              <div className="flex items-center gap-4">
-                <p className="font-mono text-sm text-orange-800 dark:text-orange-300">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+                <p className="min-h-10 font-mono text-sm text-orange-800 sm:min-h-0 dark:text-orange-300">
                   <span aria-hidden="true">&gt; </span>
                   {state.message}
                 </p>
@@ -96,10 +103,12 @@ export default function App() {
                   onClick={() => void cancel()}
                   className={`${DARK} self-center`}
                 >
+                  <CrossIcon />
                   Annuler
                 </button>
               ) : (
                 <button type="button" disabled className={`${DARK} self-center`}>
+                  <CrossIcon />
                   Annulation en cours…
                 </button>
               )}
@@ -123,17 +132,21 @@ export default function App() {
                   }),
                 )}
               />
-              <div className="flex flex-wrap justify-center gap-3">
+              <div className="flex flex-wrap items-center justify-center gap-3">
                 {state.playing === null ? (
                   <button type="button" onClick={replay} className={PRIMARY}>
+                    <ReplayIcon />
                     Réécouter
                   </button>
                 ) : (
                   <button type="button" onClick={stop} className={DARK}>
+                    <StopIcon />
                     Arrêter
                   </button>
                 )}
+                <ShareButton text={text} />
                 <button type="button" onClick={reset} className={SECONDARY}>
+                  <PencilIcon />
                   Modifier le texte
                 </button>
               </div>
@@ -169,6 +182,7 @@ export default function App() {
                 disabled={tooLong || words.length === 0}
                 className={`${PRIMARY} self-center`}
               >
+                <PlayIcon />
                 Lire
               </button>
             </>
