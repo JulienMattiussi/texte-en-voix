@@ -95,6 +95,12 @@ tests/
   redirections (`aujourd'hui` -> `aujourd’hui`) sont suivies, et la pagination
   `continue` est gérée. Un cache (titre -> wikitexte ou `null` si absent) évite
   de redemander un titre déjà vu.
+- **Identification** (`src/lib/mediawiki.ts`) : chaque appel aux API envoie
+  `Api-User-Agent: TexteEnVoix/1.0 (<site>; <dépôt GitHub>)`, comme le demande
+  Wikimédia (le navigateur interdit de modifier `User-Agent`). Les deux API
+  l'autorisent en CORS (au prix d'une requête de vérification par appel). **Ne pas
+  l'ajouter aux téléchargements audio** (`upload.wikimedia.org`), dont la
+  politique CORS pour cet en-tête n'est pas garantie.
 - **Phrase** (`src/lib/sentence.ts`) : chaque mot est cherché tel quel puis en
   minuscules (titres sensibles à la casse). Si **un seul** mot n'a aucun
   enregistrement français, la phrase entière est refusée (« La synthèse vocale

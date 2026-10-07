@@ -1,5 +1,9 @@
 const MAX_TITLES_PER_QUERY = 50
 
+// Wikimedia asks API clients to identify themselves; browsers forbid setting User-Agent itself.
+export const API_USER_AGENT =
+  'TexteEnVoix/1.0 (https://texte-en-voix.yavadeus.dev/; https://github.com/JulienMattiussi/texte-en-voix)'
+
 type TitleMapping = { from: string; to: string }
 
 type MediaWikiPage = {
@@ -59,7 +63,10 @@ async function queryChunk<T>(
 
   // Big pages can overflow the API response size limit; the rest then comes through `continue`.
   while (continuation) {
-    const response = await fetchFn(buildQueryUrl(apiUrl, params, titles, continuation), { signal })
+    const response = await fetchFn(buildQueryUrl(apiUrl, params, titles, continuation), {
+      signal,
+      headers: { 'Api-User-Agent': API_USER_AGENT },
+    })
     if (!response.ok) throw new Error(`MediaWiki API error: ${response.status}`)
     const data = (await response.json()) as QueryResponse
     for (const { from, to } of [

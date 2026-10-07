@@ -1,4 +1,4 @@
-import { buildQueryUrl } from '@/lib/mediawiki'
+import { API_USER_AGENT, buildQueryUrl } from '@/lib/mediawiki'
 import { fetchWikitexts, WIKTIONARY_API_URL, wiktionaryPageUrl } from '@/lib/wiktionary'
 import { apiResponse, fakeWikimedia, requestedTitles } from '../fakeWikimedia'
 
@@ -89,11 +89,15 @@ describe('fetchWikitexts', () => {
     expect(Object.fromEntries(result)).toEqual({ chat: 'miaou', chien: 'ouaf' })
   })
 
-  it('passes the abort signal to fetch', async () => {
+  it('passes the abort signal and identifies itself to Wikimedia', async () => {
     const fetchFn = fakeWikimedia({})
     const { signal } = new AbortController()
     await fetchWikitexts(['chat'], { fetchFn, signal })
-    expect(fetchFn.mock.calls[0]![1]).toEqual({ signal })
+    expect(fetchFn.mock.calls[0]![1]).toEqual({
+      signal,
+      headers: { 'Api-User-Agent': API_USER_AGENT },
+    })
+    expect(API_USER_AGENT).toMatch(/^TexteEnVoix\/\S+ \(https:\/\/texte-en-voix\.yavadeus\.dev\//)
   })
 
   it('throws on an HTTP error', async () => {
