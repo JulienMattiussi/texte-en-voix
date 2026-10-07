@@ -53,7 +53,8 @@ src/
 ├── WiktionaryLogo.tsx        # Petite tuile « W » de la ligne « Source : Wiktionnaire »
 ├── WordList.tsx              # Bulles de mots (préparation puis lecture), à la place du textarea
 ├── ProgressBar.tsx           # Barre de progression de la préparation
-├── ShareButton.tsx           # « Partager » : menu natif du téléphone, sinon copie du lien
+├── ShareButton.tsx           # Icône « Partager » : menu natif, sinon copie + notification « Lien copié »
+├── icons.tsx                 # Icônes des boutons (lecture, réécoute, arrêt, annulation, édition, partage)
 ├── MissingWords.tsx          # Encart « synthèse impossible » + invitation Lingua Libre
 ├── App.tsx                   # Page : saisie, préparation, lecture
 ├── main.tsx                  # Point d'entrée
