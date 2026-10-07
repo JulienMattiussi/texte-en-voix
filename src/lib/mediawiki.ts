@@ -5,7 +5,10 @@ type TitleMapping = { from: string; to: string }
 type MediaWikiPage = {
   title: string
   revisions?: { slots: { main: { content: string } } }[]
-  imageinfo?: { url: string }[]
+  imageinfo?: {
+    url: string
+    extmetadata?: Partial<Record<'Artist' | 'LicenseShortName', { value: string }>>
+  }[]
 }
 
 type QueryResponse = {
@@ -13,16 +16,16 @@ type QueryResponse = {
   continue?: Record<string, string>
 }
 
-export type FetchOptions = {
+export type FetchOptions<T = string> = {
   fetchFn?: typeof fetch
   signal?: AbortSignal
-  cache?: Map<string, string | null>
+  cache?: Map<string, T | null>
 }
 
-type PageQuery = {
+type PageQuery<T> = {
   apiUrl: string
   params: Record<string, string>
-  extract: (page: MediaWikiPage) => string | undefined
+  extract: (page: MediaWikiPage) => T | undefined
 }
 
 export function buildQueryUrl(
@@ -44,13 +47,13 @@ export function buildQueryUrl(
   return `${apiUrl}?${search}`
 }
 
-async function queryChunk(
-  { apiUrl, params, extract }: PageQuery,
+async function queryChunk<T>(
+  { apiUrl, params, extract }: PageQuery<T>,
   titles: string[],
   fetchFn: typeof fetch,
   signal?: AbortSignal,
-): Promise<Map<string, string>> {
-  const values = new Map<string, string>()
+): Promise<Map<string, T>> {
+  const values = new Map<string, T>()
   const aliases = new Map<string, string>()
   let continuation: Record<string, string> | undefined = {}
 
@@ -72,7 +75,7 @@ async function queryChunk(
     continuation = data.continue
   }
 
-  const result = new Map<string, string>()
+  const result = new Map<string, T>()
   for (const title of titles) {
     let resolved = title
     while (aliases.has(resolved)) resolved = aliases.get(resolved)!
@@ -82,11 +85,11 @@ async function queryChunk(
   return result
 }
 
-export async function queryPages(
-  query: PageQuery,
+export async function queryPages<T>(
+  query: PageQuery<T>,
   titles: string[],
-  { fetchFn = fetch, signal, cache = new Map() }: FetchOptions = {},
-): Promise<Map<string, string>> {
+  { fetchFn = fetch, signal, cache = new Map() }: FetchOptions<T> = {},
+): Promise<Map<string, T>> {
   const pending = [...new Set(titles)].filter((title) => !cache.has(title))
   // Sequential on purpose, to stay gentle with the Wikimedia servers.
   for (let i = 0; i < pending.length; i += MAX_TITLES_PER_QUERY) {
@@ -95,7 +98,7 @@ export async function queryPages(
     for (const title of chunk) cache.set(title, found.get(title) ?? null)
   }
 
-  const result = new Map<string, string>()
+  const result = new Map<string, T>()
   for (const title of titles) {
     const value = cache.get(title)
     if (value != null) result.set(title, value)

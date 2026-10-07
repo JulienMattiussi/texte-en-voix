@@ -11,6 +11,7 @@ import { Title } from '@/Title'
 import { WiktionaryLogo } from '@/WiktionaryLogo'
 import { WordList } from '@/WordList'
 
+const COMMONS_URL = 'https://commons.wikimedia.org/'
 const AUTHOR_URL = 'https://yavadeus.vercel.app/'
 
 const BUTTON =
@@ -109,15 +110,18 @@ export default function App() {
               <WordList
                 label="Voix trouvées"
                 minHeight={boxHeight}
-                items={state.voices.map(({ word, title, location, lemma }, index) => ({
-                  word,
-                  detail: [location || 'lieu inconnu', lemma && `via ${lemma}`]
-                    .filter(Boolean)
-                    .join(', '),
-                  href: wiktionaryPageUrl(title),
-                  active: index === state.playing,
-                  current: index === state.playing,
-                }))}
+                items={state.voices.map(
+                  ({ word, title, location, lemma, author, license }, index) => ({
+                    word,
+                    detail: [location || 'lieu inconnu', lemma && `via ${lemma}`]
+                      .filter(Boolean)
+                      .join(', '),
+                    credit: { author, license },
+                    href: wiktionaryPageUrl(title),
+                    active: index === state.playing,
+                    current: index === state.playing,
+                  }),
+                )}
               />
               <div className="flex flex-wrap justify-center gap-3">
                 {state.playing === null ? (
@@ -182,14 +186,28 @@ export default function App() {
           </p>
         )}
       </main>
-      <footer className="pb-8 text-center text-sm text-stone-500 dark:text-stone-400">
-        Fait avec <span aria-label="amour">❤️</span> par{' '}
-        <a
-          href={AUTHOR_URL}
-          className="font-semibold text-stone-700 underline-offset-2 outline-none hover:underline focus-visible:ring-4 focus-visible:ring-orange-300 dark:text-stone-200"
-        >
-          YavaDeus
-        </a>
+      <footer className="flex flex-col gap-1 px-4 pb-8 text-center text-sm text-stone-500 dark:text-stone-400">
+        <p className="text-xs">
+          Voix :{' '}
+          <a
+            href={COMMONS_URL}
+            target="commons"
+            rel="noopener"
+            className="underline underline-offset-2 outline-none hover:text-stone-700 focus-visible:ring-4 focus-visible:ring-orange-300 dark:hover:text-stone-200"
+          >
+            Wikimedia Commons
+          </a>
+          , licences libres
+        </p>
+        <p>
+          Fait avec <span aria-label="amour">❤️</span> par{' '}
+          <a
+            href={AUTHOR_URL}
+            className="font-semibold text-stone-700 underline-offset-2 outline-none hover:underline focus-visible:ring-4 focus-visible:ring-orange-300 dark:text-stone-200"
+          >
+            YavaDeus
+          </a>
+        </p>
       </footer>
     </div>
   )

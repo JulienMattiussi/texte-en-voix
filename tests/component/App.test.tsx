@@ -111,7 +111,18 @@ describe('App', () => {
 
     await wait(300)
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
-    expect(itemsOf('Voix trouvées')).toEqual(['SalutFrance (Vosges)', 'laCanada (Québec)'])
+    expect(itemsOf('Voix trouvées')).toEqual([
+      'SalutFrance (Vosges)🎙 voix : LoquaxFR',
+      'laCanada (Québec)🎙 voix : LoquaxFR',
+    ])
+    expect(screen.getByRole('link', { name: /Salut/ })).toHaveAttribute(
+      'title',
+      '« Salut » sur le Wiktionnaire. Voix : LoquaxFR, licence CC BY-SA 4.0',
+    )
+    expect(screen.getByRole('link', { name: 'Wikimedia Commons' })).toHaveAttribute(
+      'href',
+      'https://commons.wikimedia.org/',
+    )
     const link = screen.getByRole('link', { name: /Salut/ })
     expect(link).toHaveAttribute('href', 'https://fr.wiktionary.org/wiki/salut')
     expect(link).toHaveAttribute('target', 'wiktionnaire')

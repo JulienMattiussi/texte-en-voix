@@ -1,6 +1,8 @@
 import { COMMONS_API_URL } from '@/lib/commons'
 import { createCaches, prepareSynthesis } from '@/lib/synthesis'
-import { decodeText, fakeWikimedia, listen } from '../fakeWikimedia'
+import { decodeText, FAKE_AUTHOR, FAKE_LICENSE, fakeWikimedia, listen } from '../fakeWikimedia'
+
+const credit = { author: FAKE_AUTHOR, license: FAKE_LICENSE }
 
 const WIKITEXTS = {
   salut: listen('France (Vosges)', 'salut.wav'),
@@ -17,9 +19,21 @@ describe('prepareSynthesis', () => {
     expect(result).toEqual({
       status: 'ready',
       voices: [
-        { word: 'Salut', title: 'salut', location: 'France (Vosges)', audio: 'salut.wav' },
-        { word: 'la', title: 'la', location: 'Canada (Québec)', audio: 'la.wav' },
-        { word: 'salut', title: 'salut', location: 'France (Vosges)', audio: 'salut.wav' },
+        {
+          word: 'Salut',
+          title: 'salut',
+          location: 'France (Vosges)',
+          ...credit,
+          audio: 'salut.wav',
+        },
+        { word: 'la', title: 'la', location: 'Canada (Québec)', ...credit, audio: 'la.wav' },
+        {
+          word: 'salut',
+          title: 'salut',
+          location: 'France (Vosges)',
+          ...credit,
+          audio: 'salut.wav',
+        },
       ],
     })
   })

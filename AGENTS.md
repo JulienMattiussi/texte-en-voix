@@ -119,8 +119,15 @@ tests/
   espacés de 100 ms**, pendant l'attente de 5-8 s. `upload.wikimedia.org`
   renvoie `Access-Control-Allow-Origin: *`, donc la Web Audio API peut les
   décoder. Un fichier absent (404) ou indécodable rend la phrase impossible.
-  Trois caches (wikitextes, URL, sons décodés) : relire une phrase déjà lue ne
+  Trois caches (wikitextes, infos des fichiers, sons décodés) : relire une phrase déjà lue ne
   fait **aucun** appel réseau.
+- **Crédits des voix** (`src/lib/commons.ts`) : la même requête Commons
+  demande `iiprop=url|extmetadata` (filtré sur `Artist|LicenseShortName`).
+  `authorName` garde le **locuteur** des fichiers Lingua Libre (« Speaker: X /
+  Recorder: Y »), sinon le texte de l'auteur. Chaque bulle affiche « 🎙 auteur »,
+  l'infobulle ajoute la licence, et le pied de page indique « Voix :
+  Wikimedia Commons, licences libres » (visible aussi sur mobile, sans survol). Obligatoire : les enregistrements sont sous licences libres
+  (CC BY-SA le plus souvent), qui imposent de créditer l'auteur.
 - **Lecture** (`src/lib/audio.ts`, `src/player.ts`) : chaque son est rogné de ses
   silences (seuil à 5 % du pic, marge de 30 ms), normalisé (pic à 0.8, gain max
   5), puis les mots sont enchaînés avec 80 ms d'écart. Le mot en cours est mis

@@ -9,6 +9,10 @@ export function listen(location: string, audio: string): string {
 
 export const fileUrl = (file: string) => `https://upload.wikimedia.org/fake/${file}`
 
+export const FAKE_AUTHOR = 'LoquaxFR'
+export const FAKE_LICENSE = 'CC BY-SA 4.0'
+const FAKE_ARTIST = `<ul><li>Speaker: <a href="//lingualibre.org/wiki/Q1">${FAKE_AUTHOR}</a></li>\n<li>Recorder: <a>Someone</a></li></ul>`
+
 export function apiResponse(pages: FakePage[], extra: Record<string, unknown> = {}): Response {
   const query = {
     ...extra,
@@ -16,7 +20,18 @@ export function apiResponse(pages: FakePage[], extra: Record<string, unknown> = 
       content !== undefined
         ? { title, revisions: [{ slots: { main: { content } } }] }
         : url !== undefined
-          ? { title, imageinfo: [{ url: `${url}?utm_source=commons.wikimedia.org` }] }
+          ? {
+              title,
+              imageinfo: [
+                {
+                  url: `${url}?utm_source=commons.wikimedia.org`,
+                  extmetadata: {
+                    Artist: { value: FAKE_ARTIST },
+                    LicenseShortName: { value: FAKE_LICENSE },
+                  },
+                },
+              ],
+            }
           : { title, missing: true },
     ),
   }

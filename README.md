@@ -49,6 +49,8 @@ Québec, « canard » à Toulouse. Le résultat est haché, imprévisible, et
 - 🫐 **Les pluriels se débrouillent** : « brimbelles » n'a pas d'enregistrement ?
   Il emprunte celui de « brimbelle », mais seulement si les deux se prononcent
   exactement pareil.
+- 🎙️ **Chaque voix est créditée** : le nom du locuteur dans sa bulle, sa
+  licence au survol, comme le demandent les licences libres de Wikimédia.
 - 🎚️ **Un montage soigné** : silences rognés, volumes égalisés, mots enchaînés,
   et le mot en cours mis en avant pendant la lecture.
 - 🔗 **Chaque mot mène à sa page** du Wiktionnaire. Les mots introuvables aussi,
@@ -68,7 +70,7 @@ Québec, « canard » à Toulouse. Le résultat est haché, imprévisible, et
   └─ {{écouter}}    les enregistrements français de chaque page, avec leur lieu
   └─ accent         Vosges, Québec, Suisse, Sud-Ouest > autre région > « France »
   └─ repli          pluriel sans voix -> mot de base, si la prononciation est identique
-  └─ Commons        1 requête pour l'adresse de tous les fichiers audio
+  └─ Commons        1 requête : adresse, auteur et licence de tous les fichiers
   └─ téléchargement un fichier à la fois, espacés de 100 ms
   └─ Web Audio      silences rognés, volume normalisé, mots enchaînés à 80 ms
 ```
@@ -117,9 +119,6 @@ Vitest + Testing Library. Les conventions et l'architecture sont détaillées da
   élidée n'a pas sa propre page, la phrase est refusée.
 - **Un pluriel sans prononciation écrite** sur sa page ne peut pas emprunter la
   voix de son singulier.
-- **Les auteurs des enregistrements ne sont pas encore crédités** sur la page,
-  alors que leur licence (CC BY-SA, le plus souvent) le demande. C'est le
-  prochain chantier.
 - **Lingua Libre ne permet pas de pré-remplir un mot** : le lien d'invitation
   ouvre l'assistant d'enregistrement, à vous d'y ajouter le mot.
 
