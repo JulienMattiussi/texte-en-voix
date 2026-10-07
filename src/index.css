@@ -20,14 +20,14 @@
   body {
     background:
       radial-gradient(circle, rgb(120 113 108 / 0.22) 1px, transparent 1.5px) 0 0 / 22px 22px,
-      linear-gradient(to bottom, var(--color-orange-50), var(--color-amber-100)) fixed;
+      linear-gradient(to bottom, var(--color-orange-50), var(--color-amber-100));
   }
 
   @media (prefers-color-scheme: dark) {
     body {
       background:
         radial-gradient(circle, rgb(214 211 209 / 0.09) 1px, transparent 1.5px) 0 0 / 22px 22px,
-        linear-gradient(to bottom, var(--color-stone-950), var(--color-stone-900)) fixed;
+        linear-gradient(to bottom, var(--color-stone-950), var(--color-stone-900));
     }
   }
 }
