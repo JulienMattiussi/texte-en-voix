@@ -134,6 +134,11 @@ tests/
   la préparation, des messages bidons défilent toutes les 1,5 s (« On réveille
   le Vosgien… ») ; pendant l'annulation, d'autres messages (« On rembobine la
   cassette… ») et la barre se **vide** en 3 s.
+- **Look** : sobre, touches « techno » discrètes qui ne prennent jamais le pas
+  sur le fonctionnel : grille de points pâle en fond (`src/index.css`),
+  monospace pour les petits textes techniques (compteur, lieux, messages
+  d'attente en « > ligne de journal »), forme d'onde du titre animée pendant la
+  lecture (coupée si l'utilisateur réduit les animations).
 - **Mode sombre** : suit la préférence du système (variantes `dark:` de
   Tailwind, `color-scheme: light dark`). Toute nouvelle couleur claire doit
   avoir sa variante `dark:`.

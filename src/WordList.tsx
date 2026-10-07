@@ -21,7 +21,7 @@ export function WordList({ label, items, minHeight }: WordListProps) {
           <>
             <span className="text-lg">{word}</span>
             <span
-              className={`text-xs ${active ? 'text-orange-100' : 'text-stone-500 dark:text-stone-400'}`}
+              className={`font-mono text-[11px] ${active ? 'text-orange-100' : 'text-stone-500 dark:text-stone-400'}`}
             >
               {detail ?? ' '}
             </span>

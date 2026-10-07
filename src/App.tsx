@@ -39,10 +39,10 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-orange-50 dark:from-stone-950 to-amber-100 dark:to-stone-900 text-stone-800 dark:text-stone-100">
+    <div className="min-h-screen text-stone-800 dark:text-stone-100">
       <main className="mx-auto flex max-w-2xl flex-col gap-8 px-4 py-12 sm:py-20">
         <header className="flex flex-col gap-3 text-center">
-          <Title />
+          <Title speaking={state.status === 'ready' && state.playing !== null} />
           <div className="flex flex-col items-center gap-2">
             <p className="text-lg text-stone-600 dark:text-stone-300">
               La synthèse vocale sans IA ni synthétiseur : chaque mot est lu par un véritable être
@@ -65,12 +65,13 @@ export default function App() {
 
         <form
           onSubmit={read}
-          className="flex flex-col gap-4 rounded-3xl bg-white/80 dark:bg-stone-900/80 p-6 shadow-xl shadow-orange-900/10 dark:shadow-black/40"
+          className="flex flex-col gap-4 rounded-2xl border border-stone-200 bg-white/85 p-6 shadow-sm dark:border-stone-800 dark:bg-stone-900/85"
         >
           {busy ? (
             <>
               <div className="flex items-center gap-4">
-                <p className="font-semibold text-orange-800 dark:text-orange-300">
+                <p className="font-mono text-sm text-orange-800 dark:text-orange-300">
+                  <span aria-hidden="true">&gt; </span>
                   {state.message}
                 </p>
                 <ProgressBar
@@ -137,7 +138,7 @@ export default function App() {
                   Votre texte
                 </label>
                 <span
-                  className={`text-sm ${tooLong ? 'font-bold text-red-700 dark:text-red-400' : 'text-stone-500 dark:text-stone-400'}`}
+                  className={`font-mono text-sm ${tooLong ? 'font-bold text-red-700 dark:text-red-400' : 'text-stone-500 dark:text-stone-400'}`}
                 >
                   {words.length} / {MAX_WORDS} mots
                 </span>

@@ -28,9 +28,13 @@ function VoiceWaves({ className }: { className?: string }) {
   )
 }
 
-function PencilToSound({ className }: { className?: string }) {
+function PencilToSound({ className, speaking }: { className: string; speaking: boolean }) {
   return (
-    <svg viewBox="0 0 400 40" className={className} aria-hidden="true">
+    <svg
+      viewBox="0 0 400 40"
+      className={`${className} ${speaking ? 'tv-speaking' : ''}`}
+      aria-hidden="true"
+    >
       <path
         d="M4 22c18-9 34 7 54-1s32-8 50-1 34 5 52-2 26-3 40 2"
         fill="none"
@@ -41,14 +45,24 @@ function PencilToSound({ className }: { className?: string }) {
       <g stroke="#ea580c" strokeWidth="5" strokeLinecap="round">
         {WAVE_BARS.map((height, index) => {
           const x = 214 + index * 9.5
-          return <line key={x} x1={x} x2={x} y1={20 - height / 2} y2={20 + height / 2} />
+          return (
+            <line
+              key={x}
+              className="tv-bar"
+              style={{ animationDelay: `${(index % 7) * 85}ms` }}
+              x1={x}
+              x2={x}
+              y1={20 - height / 2}
+              y2={20 + height / 2}
+            />
+          )
         })}
       </g>
     </svg>
   )
 }
 
-export function Title() {
+export function Title({ speaking }: { speaking: boolean }) {
   return (
     <div className="flex flex-col items-center">
       <h1 className="font-hand flex items-end justify-center gap-2 leading-none text-stone-800 dark:text-stone-100 sm:gap-3">
@@ -63,7 +77,10 @@ export function Title() {
       </h1>
       <div className="-mt-1 flex items-center">
         <Pencil className="-mr-1 w-14 origin-right rotate-[35deg] sm:w-20" />
-        <PencilToSound className="w-64 text-stone-600 sm:w-96 dark:text-stone-400" />
+        <PencilToSound
+          className="w-64 text-stone-600 sm:w-96 dark:text-stone-400"
+          speaking={speaking}
+        />
       </div>
     </div>
   )

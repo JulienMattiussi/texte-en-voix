@@ -16,6 +16,22 @@
   }
 }
 
+@layer base {
+  body {
+    background:
+      radial-gradient(circle, rgb(120 113 108 / 0.22) 1px, transparent 1.5px) 0 0 / 22px 22px,
+      linear-gradient(to bottom, var(--color-orange-50), var(--color-amber-100)) fixed;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    body {
+      background:
+        radial-gradient(circle, rgb(214 211 209 / 0.09) 1px, transparent 1.5px) 0 0 / 22px 22px,
+        linear-gradient(to bottom, var(--color-stone-950), var(--color-stone-900)) fixed;
+    }
+  }
+}
+
 @keyframes tv-wave {
   0%,
   100% {
@@ -26,8 +42,24 @@
   }
 }
 
+@keyframes tv-bar {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(0.3);
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .tv-wave {
     animation: tv-wave 1.6s ease-in-out infinite;
+  }
+
+  .tv-speaking .tv-bar {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: tv-bar 0.6s ease-in-out infinite;
   }
 }
