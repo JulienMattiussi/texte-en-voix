@@ -11,6 +11,8 @@ import { Title } from '@/Title'
 import { WiktionaryLogo } from '@/WiktionaryLogo'
 import { WordList } from '@/WordList'
 
+const AUTHOR_URL = 'https://yavadeus.vercel.app/'
+
 const BUTTON =
   'rounded-full px-8 py-3 text-lg font-bold transition focus-visible:ring-4 focus-visible:ring-orange-300 focus-visible:outline-none disabled:opacity-50'
 const PRIMARY = `${BUTTON} bg-orange-600 text-white shadow-lg hover:bg-orange-700`
@@ -114,6 +116,7 @@ export default function App() {
                     .join(', '),
                   href: wiktionaryPageUrl(title),
                   active: index === state.playing,
+                  current: index === state.playing,
                 }))}
               />
               <div className="flex flex-wrap justify-center gap-3">
@@ -179,6 +182,15 @@ export default function App() {
           </p>
         )}
       </main>
+      <footer className="pb-8 text-center text-sm text-stone-500 dark:text-stone-400">
+        Fait avec <span aria-label="amour">❤️</span> par{' '}
+        <a
+          href={AUTHOR_URL}
+          className="font-semibold text-stone-700 underline-offset-2 outline-none hover:underline focus-visible:ring-4 focus-visible:ring-orange-300 dark:text-stone-200"
+        >
+          YavaDeus
+        </a>
+      </footer>
     </div>
   )
 }

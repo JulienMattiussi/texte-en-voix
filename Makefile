@@ -15,6 +15,12 @@ build: ## Build application for production
 preview: build ## Preview production build locally
 	npm run preview
 
+og: ## Regenerate the social share image public/og.png (needs google-chrome)
+	@npx vite --port 9997 --strictPort >/dev/null 2>&1 & echo $$! > .og.pid; sleep 3
+	google-chrome --headless=new --disable-gpu --hide-scrollbars --virtual-time-budget=4000 \
+		--window-size=1200,630 --screenshot=public/og.png http://localhost:9997/og.html
+	@kill `cat .og.pid` && rm .og.pid
+
 lint: ## Run ESLint
 	npm run lint
 

@@ -1,6 +1,6 @@
 import { WIKTIONARY_TARGET } from '@/lib/wiktionary'
 
-type WordItem = { word: string; detail?: string; href?: string; active: boolean }
+type WordItem = { word: string; detail?: string; href?: string; active: boolean; current?: boolean }
 
 type WordListProps = { label: string; items: WordItem[]; minHeight?: number }
 
@@ -11,7 +11,7 @@ export function WordList({ label, items, minHeight }: WordListProps) {
       style={{ minHeight }}
       className="flex min-h-36 flex-wrap content-start gap-2 rounded-2xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-950 p-4"
     >
-      {items.map(({ word, detail, href, active }, index) => {
+      {items.map(({ word, detail, href, active, current }, index) => {
         const chip = `flex max-w-full flex-col items-center rounded-2xl px-3 py-1 transition-colors duration-300 ${
           active
             ? 'bg-orange-600 text-white'
@@ -31,7 +31,7 @@ export function WordList({ label, items, minHeight }: WordListProps) {
           <li
             key={`${index}-${word}`}
             className="max-w-full"
-            aria-current={active ? 'true' : undefined}
+            aria-current={current ? 'true' : undefined}
           >
             {href ? (
               <a

@@ -64,6 +64,14 @@ describe('App', () => {
     expect(screen.getByLabelText('Votre texte')).toHaveValue(EXAMPLES[0])
   })
 
+  it('credits the author in the footer', () => {
+    setup('')
+    expect(screen.getByRole('link', { name: 'YavaDeus' })).toHaveAttribute(
+      'href',
+      'https://yavadeus.vercel.app/',
+    )
+  })
+
   it('counts the words of the typed text', async () => {
     const { typeText } = setup('Salut la compagnie')
     await typeText()
@@ -89,10 +97,16 @@ describe('App', () => {
     expect(screen.getByText(LOADING_MESSAGES[1]!)).toBeInTheDocument()
     expect(screen.queryByLabelText('Votre texte')).not.toBeInTheDocument()
     expect(itemsOf('Mots en préparation')).toEqual(['Salut\u00a0', 'la\u00a0'])
+    await wait(3000)
+    expect(
+      within(screen.getByRole('list', { name: 'Mots en préparation' })).queryByRole('listitem', {
+        current: true,
+      }),
+    ).not.toBeInTheDocument()
     expect(
       within(screen.getByRole('list', { name: 'Mots en préparation' })).queryByRole('link'),
     ).not.toBeInTheDocument()
-    await wait(4800 - MESSAGE_PERIOD_MS)
+    await wait(1800 - MESSAGE_PERIOD_MS)
     expect(screen.queryByRole('list', { name: 'Voix trouvées' })).not.toBeInTheDocument()
 
     await wait(300)

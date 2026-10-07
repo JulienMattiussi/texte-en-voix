@@ -58,7 +58,14 @@ src/
 ├── index.css                 # Import Tailwind
 └── vite-env.d.ts             # Types Vite
 public/
-└── favicon.svg               # Favicon
+├── favicon.svg               # Favicon
+├── og.png                    # Image de partage 1200x630 (générée par `make og`)
+├── robots.txt                # Autorise tout, pointe vers le sitemap
+└── sitemap.xml               # Une seule page
+tools/
+└── og.tsx                    # Page de l'image de partage (vrais composants), servie via og.html
+docs/images/
+└── lecture.png               # Capture d'une vraie lecture, pour le README
 tests/
 ├── setup.ts                  # Setup Testing Library (jest-dom)
 ├── fakeWikimedia.ts          # Faux fetch : Wiktionnaire, Commons et fichiers audio
@@ -142,6 +149,12 @@ tests/
 - **Mode sombre** : suit la préférence du système (variantes `dark:` de
   Tailwind, `color-scheme: light dark`). Toute nouvelle couleur claire doit
   avoir sa variante `dark:`.
+- **SEO et partage** (`index.html`) : adresse publique
+  `https://texte-en-voix.yavadeus.dev/` (canonical, Open Graph, Twitter, JSON-LD
+  `WebApplication`). L'image de partage est rendue depuis les vrais composants
+  (`tools/og.tsx`) avec des mots et lieux issus d'une vraie recherche : si l'UI
+  change, relancer `make og`. Pied de page : « Fait avec ❤️ par YavaDeus »,
+  lien vers `https://yavadeus.vercel.app/`.
 - **Appels de test** : ne jamais saturer Wikimedia (un blocage tuerait le
   projet). Tous les tests mockent `fetch` ; une vérification réelle se limite à
   une phrase, une fois.
@@ -205,6 +218,7 @@ tests/
 | `make start` | Serveur de dev (http://localhost:9999) |
 | `make build` | Build de production |
 | `make preview` | Build puis prévisualisation locale |
+| `make og` | Régénère `public/og.png` (Vite + Chrome headless, nécessite `google-chrome`) |
 | `make lint` | ESLint |
 | `make knip` | Détecte fichiers / exports / dépendances inutilisés |
 | `make format` | Formate avec Prettier |
