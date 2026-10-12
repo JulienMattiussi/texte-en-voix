@@ -38,11 +38,24 @@ describe('normalizationGain', () => {
 
 describe('timeline', () => {
   it('chains the words with a short gap', () => {
-    const { starts, total } = timeline([0.5, 0.25, 1], 0.1)
-    expect(starts[0]).toBe(0)
-    expect(starts[1]).toBeCloseTo(0.6)
-    expect(starts[2]).toBeCloseTo(0.95)
+    const { starts, total } = timeline([[0.5], [0.25], [1]], 0.1)
+    expect(starts.flat()[0]).toBe(0)
+    expect(starts.flat()[1]).toBeCloseTo(0.6)
+    expect(starts.flat()[2]).toBeCloseTo(0.95)
     expect(total).toBeCloseTo(1.95)
+  })
+
+  it('overlaps the sounds of one word slightly', () => {
+    const { starts, total } = timeline([[0.25, 0.5], [1]], 0.1, 0.05)
+    expect(starts[0]![1]).toBeCloseTo(0.2)
+    expect(starts[1]![0]).toBeCloseTo(0.8)
+    expect(total).toBeCloseTo(1.8)
+  })
+
+  it('never starts a sound before the previous one, nor ends a word early', () => {
+    const { starts, total } = timeline([[0.03, 0.01]], 0.1, 0.05)
+    expect(starts[0]).toEqual([0, 0])
+    expect(total).toBeCloseTo(0.03)
   })
 
   it('is empty without words', () => {

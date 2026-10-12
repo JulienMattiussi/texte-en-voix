@@ -115,6 +115,15 @@ tests/
   (points, accents toniques et liaisons ignorés). « mangeons » n'emprunte donc
   pas « manger ». Une seule requête de plus, et seulement s'il manque des mots.
   La bulle affiche « via mirabelle ».
+- **Élisions** (`src/lib/sentence.ts`) : un mot à apostrophe est d'abord cherché
+  entier (« c’est », « aujourd’hui », « d’accord » ont leur enregistrement).
+  Sinon il est découpé à la première apostrophe : « j’aime » = « j’ » + « aime ».
+  Le Wiktionnaire a des enregistrements de « j’ », « l’ », « c’ », « d’ »,
+  « qu’ », « n’ », « s’ », « m’ », « t’ » (consonne seule) ; à défaut, la forme
+  pleine (« je », « lorsque ») sert de repli. Une seule bulle, deux sons qui se
+  chevauchent de 80 ms (`timeline` regroupe les sons par mot), crédits des deux auteurs.
+  Une requête de plus (deux si une partie est une flexion, « d’oranges »), et
+  seulement pour les mots introuvables.
 - **Verrous** (`src/lib/pacing.ts`, `src/useSynthesis.ts`) : pour ménager
   Wikimedia et donner une attente réaliste. Texte limité à **50 mots**. Une
   préparation dure **au moins 5 s** (tirage entre 5 et 8 s, plus si le réseau est

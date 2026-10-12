@@ -3,6 +3,8 @@ const PADDING_S = 0.03
 const TARGET_PEAK = 0.8
 const MAX_GAIN = 5
 const WORD_GAP_S = 0.08
+// More than the 2 x 30 ms of padding between "j’" and "aime": the consonant runs into the word.
+const ELISION_OVERLAP_S = 0.08
 
 function peak(samples: Float32Array, start = 0, end = samples.length): number {
   let max = 0
@@ -26,12 +28,21 @@ export function normalizationGain(samples: Float32Array, start: number, end: num
   return max === 0 ? 1 : Math.min(MAX_GAIN, TARGET_PEAK / max)
 }
 
-export function timeline(durations: number[], gap = WORD_GAP_S) {
-  const starts: number[] = []
+// The sounds of one word ("j’" + "aime") overlap slightly; words are spaced by `gap`.
+export function timeline(words: number[][], gap = WORD_GAP_S, overlap = ELISION_OVERLAP_S) {
+  const starts: number[][] = []
   let cursor = 0
-  for (const duration of durations) {
-    starts.push(cursor)
-    cursor += duration + gap
+  let previous = 0
+  for (const sounds of words) {
+    starts.push(
+      sounds.map((duration, index) => {
+        const start = index === 0 ? cursor : Math.max(previous, cursor - overlap)
+        previous = start
+        cursor = Math.max(cursor, start + duration)
+        return start
+      }),
+    )
+    cursor += gap
   }
   return { starts, total: Math.max(0, cursor - gap) }
 }

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { pickRandomIndex } from '@/lib/random'
 import { LOADING_MESSAGES, messageAt, UNLOADING_MESSAGES } from '@/lib/messages'
 import { AUDIO_SPACING_MS, CANCEL_COOLDOWN_MS, sleep, synthesisDuration } from '@/lib/pacing'
-import { createCaches, prepareSynthesis, type Voice } from '@/lib/synthesis'
+import { createCaches, prepareSynthesis, voiceSounds, type Voice } from '@/lib/synthesis'
 import { player } from '@/player'
 
 const TICK_MS = 100
@@ -50,16 +50,13 @@ export function useSynthesis() {
   const play = (voices: Voice<AudioBuffer>[]) => {
     haltPlayback()
     setState({ status: 'ready', voices, playing: 0 })
-    stopPlayback.current = player.play(
-      voices.map((voice) => voice.audio),
-      {
-        onWord: (index) =>
-          setState((previous) =>
-            previous.status === 'ready' ? { ...previous, playing: index } : previous,
-          ),
-        onEnd: stop,
-      },
-    )
+    stopPlayback.current = player.play(voices.map(voiceSounds), {
+      onWord: (index) =>
+        setState((previous) =>
+          previous.status === 'ready' ? { ...previous, playing: index } : previous,
+        ),
+      onEnd: stop,
+    })
   }
 
   const start = async (words: string[]) => {

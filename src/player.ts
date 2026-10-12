@@ -24,9 +24,9 @@ export const player = {
     return audioContext().decodeAudioData(data)
   },
 
-  play(buffers: AudioBuffer[], { onWord, onEnd }: PlaybackEvents): () => void {
+  play(words: AudioBuffer[][], { onWord, onEnd }: PlaybackEvents): () => void {
     const ctx = audioContext()
-    const clips = buffers.map((buffer) => {
+    const clips = words.flat().map((buffer) => {
       const samples = buffer.getChannelData(0)
       const { start, end } = voiceBounds(samples, buffer.sampleRate)
       return {
@@ -36,8 +36,12 @@ export const player = {
         gain: normalizationGain(samples, start, end),
       }
     })
-    const { starts, total } = timeline(clips.map((clip) => clip.duration))
+    let next = 0
+    const { starts, total } = timeline(
+      words.map((sounds) => sounds.map(() => clips[next++]!.duration)),
+    )
     const origin = ctx.currentTime + LEAD_IN_S
+    const clipStarts = starts.flat()
 
     const sources = clips.map((clip, index) => {
       const gain = ctx.createGain()
@@ -45,11 +49,13 @@ export const player = {
       const source = ctx.createBufferSource()
       source.buffer = clip.buffer
       source.connect(gain).connect(ctx.destination)
-      source.start(origin + starts[index]!, clip.offset, clip.duration)
+      source.start(origin + clipStarts[index]!, clip.offset, clip.duration)
       return source
     })
     const timers = [
-      ...starts.map((start, index) => setTimeout(() => onWord(index), (LEAD_IN_S + start) * 1000)),
+      ...starts.map(([start = 0], index) =>
+        setTimeout(() => onWord(index), (LEAD_IN_S + start) * 1000),
+      ),
       setTimeout(onEnd, (LEAD_IN_S + total) * 1000),
     ]
 

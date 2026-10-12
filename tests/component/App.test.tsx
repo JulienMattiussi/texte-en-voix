@@ -10,7 +10,7 @@ type PlaybackEvents = { onWord: (index: number) => void; onEnd: () => void }
 const fakePlayer = vi.hoisted(() => ({
   unlock: vi.fn(),
   decode: vi.fn(),
-  play: vi.fn<(buffers: unknown[], events: PlaybackEvents) => () => void>(),
+  play: vi.fn<(words: unknown[][], events: PlaybackEvents) => () => void>(),
   stop: vi.fn(),
 }))
 
@@ -172,8 +172,8 @@ describe('App', () => {
     expect(link).toHaveAttribute('target', 'wiktionnaire')
     expect(fakePlayer.unlock).toHaveBeenCalled()
     expect(fakePlayer.play).toHaveBeenCalledOnce()
-    const [buffers, events] = fakePlayer.play.mock.calls[0]!
-    expect(buffers).toEqual(['salut.wav', 'la.wav'])
+    const [words, events] = fakePlayer.play.mock.calls[0]!
+    expect(words).toEqual([['salut.wav'], ['la.wav']])
 
     act(() => events.onWord(1))
     expect(screen.getByText('la').closest('li')).toHaveAttribute('aria-current', 'true')
@@ -182,6 +182,20 @@ describe('App', () => {
 
     act(() => events.onEnd())
     expect(screen.getByText('la').closest('li')).not.toHaveAttribute('aria-current')
+  })
+
+  it('reads an elided word as one bubble, the elision glued to the word', async () => {
+    vi.stubGlobal('fetch', fakeWikimedia({ ...WIKITEXTS, 'l’': listen('France (Lyon)', 'l.wav') }))
+    const { typeText, read } = setup("Salut l'la")
+    await typeText()
+    await read()
+    await wait(5100)
+
+    expect(itemsOf('Voix trouvées')).toEqual([
+      'SalutFrance (Vosges)🎙 voix : LoquaxFR',
+      'l’laCanada (Québec)🎙 voix : LoquaxFR',
+    ])
+    expect(fakePlayer.play.mock.calls[0]![0]).toEqual([['salut.wav'], ['l.wav', 'la.wav']])
   })
 
   it('replays instantly and stops on demand', async () => {

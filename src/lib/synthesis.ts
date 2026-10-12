@@ -2,14 +2,27 @@ import { fetchFileInfos, type FileInfo } from '@/lib/commons'
 import { downloadAudio } from '@/lib/download'
 import { lookupSentence } from '@/lib/sentence'
 
-export type Voice<T> = {
+type Sound<T> = { author: string; license: string; audio: T }
+
+export type Voice<T> = Sound<T> & {
   word: string
   title: string
   location: string
   lemma?: string
-  author: string
-  license: string
-  audio: T
+  elision?: Sound<T>
+}
+
+export function voiceSounds<T>({ elision, audio }: Voice<T>): T[] {
+  return elision ? [elision.audio, audio] : [audio]
+}
+
+export function voiceCredit({ elision, author, license }: Voice<unknown>) {
+  const join = (values: string[]) => [...new Set(values.filter(Boolean))].join(', ')
+  const sounds = elision ? [elision, { author, license }] : [{ author, license }]
+  return {
+    author: join(sounds.map((sound) => sound.author)),
+    license: join(sounds.map((sound) => sound.license)),
+  }
 }
 
 export type Synthesis<T> =
@@ -40,7 +53,9 @@ export async function prepareSynthesis<T>(
   const lookup = await lookupSentence(words, { fetchFn, signal, cache: caches.wikitexts })
   if (lookup.status === 'impossible') return lookup
 
-  const files = lookup.voices.map((voice) => voice.pronunciation.audio)
+  const files = lookup.voices.flatMap(({ elision, pronunciation }) =>
+    elision ? [elision.pronunciation.audio, pronunciation.audio] : [pronunciation.audio],
+  )
   const infos = await fetchFileInfos(files, { fetchFn, signal, cache: caches.fileInfos })
   const audio = await downloadAudio(
     [...infos.values()].map(({ url }) => url),
@@ -53,22 +68,28 @@ export async function prepareSynthesis<T>(
     },
   )
 
+  const sound = (file: string): Sound<T> | undefined => {
+    const info = infos.get(file)
+    const decoded = info && audio.get(info.url)
+    return info && decoded !== undefined
+      ? { author: info.author, license: info.license, audio: decoded }
+      : undefined
+  }
+
   const voices: Voice<T>[] = []
   const missing = new Set<string>()
-  for (const { word, title, pronunciation, lemma } of lookup.voices) {
-    const info = infos.get(pronunciation.audio)
-    const decoded = info === undefined ? undefined : audio.get(info.url)
-    if (info === undefined || decoded === undefined) missing.add(word)
+  for (const { word, title, pronunciation, lemma, elision } of lookup.voices) {
+    const main = sound(pronunciation.audio)
+    const elided = elision && sound(elision.pronunciation.audio)
+    if (!main || (elision && !elided)) missing.add(word)
     else {
-      const { author, license } = info
       voices.push({
         word,
         title,
         location: pronunciation.location,
         lemma,
-        author,
-        license,
-        audio: decoded,
+        ...main,
+        ...(elided && { elision: elided }),
       })
     }
   }

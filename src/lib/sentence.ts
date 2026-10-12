@@ -3,11 +3,14 @@ import { parsePronunciations, pickPronunciation, type Pronunciation } from '@/li
 import type { FetchOptions } from '@/lib/mediawiki'
 import { fetchWikitexts } from '@/lib/wiktionary'
 
+type Elision = { title: string; pronunciation: Pronunciation }
+
 type WordVoice = {
   word: string
   title: string
   pronunciation: Pronunciation
   lemma?: string
+  elision?: Elision
 }
 
 export type SentenceLookup =
@@ -17,6 +20,15 @@ export type SentenceLookup =
 export function titleCandidates(word: string): string[] {
   const lower = word.toLocaleLowerCase('fr')
   return lower === word ? [word] : [word, lower]
+}
+
+const ELISION = /^([\p{L}]+’)([\p{L}\p{N}].*)$/u
+
+// The full form ("je" for "j’", "lorsque" for "lorsqu’") is the fallback when the elision has no recording.
+export function splitElision(word: string) {
+  const [, elision, rest] = ELISION.exec(word) ?? []
+  if (!elision || !rest) return undefined
+  return { elision, fullForm: `${elision.slice(0, -1)}e`, rest }
 }
 
 type Flexion = { title: string; lemma: string; ipas: string[] }
@@ -45,12 +57,11 @@ function borrowLemmaVoice(
   return pronunciation && soundsAlike ? { word, title, pronunciation, lemma } : undefined
 }
 
-export async function lookupSentence(
+async function findVoices(
   words: string[],
-  options: FetchOptions = {},
-): Promise<SentenceLookup> {
-  const titles = [...new Set(words.flatMap(titleCandidates))]
-  const wikitexts = await fetchWikitexts(titles, options)
+  options: FetchOptions,
+): Promise<(WordVoice | undefined)[]> {
+  const wikitexts = await fetchWikitexts([...new Set(words.flatMap(titleCandidates))], options)
 
   const voices = words.map((word) =>
     titleCandidates(word)
@@ -76,6 +87,41 @@ export async function lookupSentence(
       }
     }
   }
+  return voices
+}
+
+// Whole forms first ("c’est", "aujourd’hui" have their own recordings), then elision + word.
+async function splitElisions(
+  words: string[],
+  voices: (WordVoice | undefined)[],
+  options: FetchOptions,
+) {
+  const splits = new Map<number, NonNullable<ReturnType<typeof splitElision>>>()
+  voices.forEach((voice, index) => {
+    const split = voice ? undefined : splitElision(words[index]!)
+    if (split) splits.set(index, split)
+  })
+  if (splits.size === 0) return
+
+  const parts = [...new Set([...splits.values()].flatMap((split) => Object.values(split)))]
+  const found = await findVoices(parts, options)
+  const partVoice = (part: string) => found[parts.indexOf(part)]
+  for (const [index, { elision, fullForm, rest }] of splits) {
+    const elided = partVoice(elision) ?? partVoice(fullForm)
+    const main = partVoice(rest)
+    if (elided && main) {
+      const { title, pronunciation } = elided
+      voices[index] = { ...main, word: words[index]!, elision: { title, pronunciation } }
+    }
+  }
+}
+
+export async function lookupSentence(
+  words: string[],
+  options: FetchOptions = {},
+): Promise<SentenceLookup> {
+  const voices = await findVoices(words, options)
+  await splitElisions(words, voices, options)
 
   const missing = [...new Set(words.filter((_, index) => voices[index] === undefined))]
   return missing.length > 0

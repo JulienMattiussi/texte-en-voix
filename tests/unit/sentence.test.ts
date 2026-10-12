@@ -1,10 +1,31 @@
-import { lookupSentence, titleCandidates } from '@/lib/sentence'
+import { lookupSentence, splitElision, titleCandidates } from '@/lib/sentence'
 import { fakeWikimedia, listen } from '../fakeWikimedia'
 
 describe('titleCandidates', () => {
   it('tries the word as typed, then in lowercase', () => {
     expect(titleCandidates('Paris')).toEqual(['Paris', 'paris'])
     expect(titleCandidates('chat')).toEqual(['chat'])
+  })
+})
+
+describe('splitElision', () => {
+  it('splits the elided word from the rest, with its full form', () => {
+    expect(splitElision('j’aime')).toEqual({ elision: 'j’', fullForm: 'je', rest: 'aime' })
+    expect(splitElision('Lorsqu’il')).toEqual({
+      elision: 'Lorsqu’',
+      fullForm: 'Lorsque',
+      rest: 'il',
+    })
+    expect(splitElision('qu’aujourd’hui')).toEqual({
+      elision: 'qu’',
+      fullForm: 'que',
+      rest: 'aujourd’hui',
+    })
+  })
+
+  it('ignores words without elision', () => {
+    expect(splitElision('chat')).toBeUndefined()
+    expect(splitElision('peut-être')).toBeUndefined()
   })
 })
 
@@ -82,6 +103,55 @@ describe('lookupSentence', () => {
         }),
       })
       expect(result).toEqual({ status: 'impossible', missing: ['mangeons'] })
+    })
+  })
+
+  describe('elided words', () => {
+    const ljai = listen('France (Lyon)', 'j.wav')
+    const aime = listen('France (Vosges)', 'aime.wav')
+
+    it('keep their own recording when the whole form has one', async () => {
+      const fetchFn = fakeWikimedia({ 'c’est': listen('Suisse', 'c-est.wav') })
+      const result = await lookupSentence(['C’est'], { fetchFn })
+      expect(result).toMatchObject({ status: 'found', voices: [{ title: 'c’est' }] })
+      expect(fetchFn).toHaveBeenCalledOnce()
+    })
+
+    it('otherwise play the elision glued to the word, in one extra query', async () => {
+      const fetchFn = fakeWikimedia({ 'j’': ljai, aime })
+      const result = await lookupSentence(['J’aime'], { fetchFn })
+      expect(result).toEqual({
+        status: 'found',
+        voices: [
+          {
+            word: 'J’aime',
+            title: 'aime',
+            pronunciation: { location: 'France (Vosges)', ipa: '', audio: 'aime.wav' },
+            elision: {
+              title: 'j’',
+              pronunciation: { location: 'France (Lyon)', ipa: '', audio: 'j.wav' },
+            },
+          },
+        ],
+      })
+      expect(fetchFn).toHaveBeenCalledTimes(2)
+    })
+
+    it('fall back to the full form of the elision', async () => {
+      const result = await lookupSentence(['j’aime'], {
+        fetchFn: fakeWikimedia({ je: listen('Canada', 'je.wav'), aime }),
+      })
+      expect(result).toMatchObject({
+        status: 'found',
+        voices: [{ word: 'j’aime', elision: { title: 'je' } }],
+      })
+    })
+
+    it('stay missing as a whole when a part has no recording', async () => {
+      const result = await lookupSentence(['j’aime', 'l’avion'], {
+        fetchFn: fakeWikimedia({ 'j’': ljai, aime, 'l’': ljai }),
+      })
+      expect(result).toEqual({ status: 'impossible', missing: ['l’avion'] })
     })
   })
 

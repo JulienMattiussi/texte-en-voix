@@ -3,6 +3,7 @@ import { EXAMPLES } from '@/lib/examples'
 import { MAX_WORDS, revealedCount } from '@/lib/pacing'
 import { pickRandom } from '@/lib/random'
 import { textFromHash } from '@/lib/share'
+import { voiceCredit } from '@/lib/synthesis'
 import { tokenize } from '@/lib/tokenize'
 import { WIKTIONARY_TARGET, WIKTIONARY_URL, wiktionaryPageUrl } from '@/lib/wiktionary'
 import { useSynthesis } from '@/useSynthesis'
@@ -119,18 +120,16 @@ export default function App() {
               <WordList
                 label="Voix trouvées"
                 minHeight={boxHeight}
-                items={state.voices.map(
-                  ({ word, title, location, lemma, author, license }, index) => ({
-                    word,
-                    detail: [location || 'lieu inconnu', lemma && `via ${lemma}`]
-                      .filter(Boolean)
-                      .join(', '),
-                    credit: { author, license },
-                    href: wiktionaryPageUrl(title),
-                    active: index === state.playing,
-                    current: index === state.playing,
-                  }),
-                )}
+                items={state.voices.map((voice, index) => ({
+                  word: voice.word,
+                  detail: [voice.location || 'lieu inconnu', voice.lemma && `via ${voice.lemma}`]
+                    .filter(Boolean)
+                    .join(', '),
+                  credit: voiceCredit(voice),
+                  href: wiktionaryPageUrl(voice.title),
+                  active: index === state.playing,
+                  current: index === state.playing,
+                }))}
               />
               <div className="flex flex-wrap items-center justify-center gap-3">
                 {state.playing === null ? (
